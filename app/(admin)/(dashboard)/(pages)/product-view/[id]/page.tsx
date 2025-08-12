@@ -9,8 +9,8 @@ import {
   Target,
   TriangleAlert,
 } from "lucide-react";
-import Link from "next/link";
 import React from "react";
+import LineChart from "@/app/(admin)/components/LineChart";
 
 export default function page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -38,7 +38,7 @@ export default function page({ params }: { params: Promise<{ id: string }> }) {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,350px))] gap-3 justify-center mt-3">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3 justify-center mt-3">
             <div className="currentStock border flex justify-between p-12">
               <div>
                 <p className="text-gray-500">Current Stock</p>
@@ -122,6 +122,9 @@ export default function page({ params }: { params: Promise<{ id: string }> }) {
                 } rounded-full p-1`}
               />
             </div>
+          </div>
+          <div className="chart mt-3 mx-auto border rounded p-3 h-screen">
+            <LineChart />
           </div>
         </div>
       )}
