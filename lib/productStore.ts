@@ -2,7 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 
 export type Product = {
-  id: number; // or string if you switch to UUIDs
+  id: number;
   name: string;
   variants: number;
   category:
@@ -16,16 +16,28 @@ export type Product = {
   stockLevel: "Sufficient Stock" | "Restock Immediately" | "Out of Stock";
   totalSales: number;
   currentStock: number;
-  forecastAccuracy: number; // percentage value
+  forecastAccuracy: number;
+  forecast: string;
+  restockDate: string;
+  restockQuantity: string;
 };
 
+export type Stock = {
+  id: number;
+  name: string;
+  variants: number[];
+  category: string;
+  remainingUnits: number;
+};
 export type ProductState = {
   products: Product[] | null;
+  stocks: Stock[] | null;
   product: Product | null;
   isLoading: boolean;
   error: boolean | null;
   getProducts: () => void;
   getSingleProduct: (id: string) => void;
+  getStocks: () => void;
 };
 
 const API_URL = "http://localhost:8000";
@@ -33,6 +45,7 @@ const API_URL = "http://localhost:8000";
 export const useProductStore = create<ProductState>((set) => ({
   products: [],
   product: null,
+  stocks: null,
   isLoading: false,
   error: false,
   getProducts: async () => {
@@ -53,6 +66,19 @@ export const useProductStore = create<ProductState>((set) => ({
     try {
       let res = await axios.get(`${API_URL}/products/${id}`);
       set({ product: res.data, isLoading: false, error: null });
+    } catch (error: any) {
+      console.log("An error occured while trying to get the products: ", error);
+      set({
+        isLoading: false,
+        error: error.response.data.message || "Failed to get the product",
+      });
+    }
+  },
+  getStocks: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      let res = await axios.get(`${API_URL}/stockManagement`);
+      set({ isLoading: false, stocks: res.data, error: null });
     } catch (error: any) {
       console.log("An error occured while trying to get the products: ", error);
       set({

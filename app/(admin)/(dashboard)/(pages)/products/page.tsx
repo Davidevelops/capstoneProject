@@ -3,6 +3,7 @@
 import { CirclePlus, SquareArrowOutUpRight, Trash } from "lucide-react";
 import { useProductStore } from "@/lib/productStore";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Select,
@@ -11,18 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AddProduct from "@/app/(admin)/components/AddProductDialog";
 export default function page() {
   const { products, isLoading, error, getProducts } = useProductStore();
   useEffect(() => {
     getProducts();
   }, []);
+  const router = useRouter();
   return (
     <div>
-      <div className="flex justify-between items-center p-4 bg-white border-b">
+      <div className="flex justify-between items-center p-4 bg-white shadow">
         <h1 className="text-3xl">Product Management</h1>
-        <button className="bg-purple-500 flex px-2 py-3 text-white rounded-2xl gap-2">
-          <CirclePlus /> Add New Product
-        </button>
+        <AddProduct />
       </div>
       <div className="mt-3">
         <div className="products bg-white flex justify-between items-center p-3">
@@ -31,12 +32,12 @@ export default function page() {
             <input type="text" className="border" />
             <Select>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Theme" />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                <SelectItem value="light">Electronics</SelectItem>
+                <SelectItem value="dark">Clothing</SelectItem>
+                <SelectItem value="system">Foods</SelectItem>
               </SelectContent>
             </Select>
           </div>

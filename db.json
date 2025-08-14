@@ -10,7 +10,10 @@
       "stockLevel": "Sufficient Stock",
       "totalSales": 450,
       "currentStock": 120,
-      "forecastAccuracy": 92.5
+      "forecastAccuracy": 92.5,
+      "forecast": "200-250",
+      "restockDate": "June 15,2023",
+      "restockQuantity": 200
     },
     {
       "id": 2,
@@ -239,6 +242,51 @@
       "totalSales": 700,
       "currentStock": 220,
       "forecastAccuracy": 97.1
+    }
+  ],
+
+  "stockManagement": [
+    {
+      "id": 1,
+      "name": "Wireless Headphones Pro",
+      "variants": [1, 2, 3, 4, 5],
+      "category": "Electronics",
+      "remainingUnits": 3
+    },
+    {
+      "id": 2,
+      "name": "Wireless Headphones Pro",
+      "variants": [1, 2, 3, 4, 5],
+      "category": "Electronics",
+      "remainingUnits": 4
+    },
+    {
+      "id": 3,
+      "name": "Wireless Headphones Pro",
+      "variants": [1, 2, 3, 4, 5],
+      "category": "Electronics",
+      "remainingUnits": 13
+    },
+    {
+      "id": 4,
+      "name": "Wireless Headphones Pro",
+      "variants": [1, 2, 3, 4, 5],
+      "category": "Electronics",
+      "remainingUnits": 18
+    },
+    {
+      "id": 5,
+      "name": "Wireless Headphones Pro",
+      "variants": [1, 2, 3, 4, 5],
+      "category": "Electronics",
+      "remainingUnits": 24
+    },
+    {
+      "id": 6,
+      "name": "Wireless Headphones Pro",
+      "variants": [1, 2, 3, 4, 5],
+      "category": "Electronics",
+      "remainingUnits": 25
     }
   ]
 }
