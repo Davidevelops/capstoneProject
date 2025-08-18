@@ -12,21 +12,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 export default function Sidebar() {
   const Links = [
-    { href: "/", label: "Dashboard", icon: ChartColumn },
-    { href: "/products", label: "Products", icon: Blocks },
-    { href: "/analytics", label: "Analytics", icon: ChartNoAxesColumn },
+    { href: "/dashboard", label: "Dashboard", icon: ChartColumn },
+    { href: "/dashboard/products", label: "Products", icon: Blocks },
     {
-      href: "/inventory",
+      href: "/dashboard/analytics",
+      label: "Analytics",
+      icon: ChartNoAxesColumn,
+    },
+    {
+      href: "/dashboard/inventory",
       label: "Inventory",
       icon: Warehouse,
     },
     {
-      href: "/alerts",
+      href: "/dashboard/alerts",
       label: "Alerts",
       icon: TriangleAlert,
     },
     {
-      href: "/settings",
+      href: "/dashboard/settings",
       label: "Settings",
       icon: Settings,
     },

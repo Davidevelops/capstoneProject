@@ -1,8 +1,8 @@
 "use client";
 
 import { useProductStore } from "@/lib/productStore";
-import DashboardOverview from "./components/DashboardOverview";
-import Supplier from "./components/Supplier";
+import DashboardOverview from "../components/DashboardOverview";
+import Supplier from "../components/Supplier";
 import { Boxes, Box } from "lucide-react";
 import { useEffect } from "react";
 import React from "react";
