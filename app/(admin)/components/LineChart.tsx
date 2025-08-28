@@ -8,6 +8,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartOptions,
 } from "chart.js";
 
 ChartJS.register(
@@ -21,7 +22,30 @@ ChartJS.register(
 );
 
 export default function LineChart() {
-  const options = {};
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top" as const,
+      },
+      title: {
+        display: true,
+        text: "Sales Data",
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45,
+        },
+      },
+      y: {
+        beginAtZero: true,
+      },
+    },
+  };
 
   const data = {
     labels: [
@@ -55,21 +79,25 @@ export default function LineChart() {
         label: "Lower Bound",
         data: [110, 220, 330, 440, 550, 660, 770, 780, 790, 760, 210, 80],
         borderColor: "cyan",
-        backgroundColor: "pink",
         tension: 0.3,
       },
       {
         label: "Actual Sales",
         data: [130, 230, 340, 460, 560, 640, 770, 740, 780, 800, 860, 900],
         borderColor: "violet",
-        backgroundColor: "pink",
         tension: 0.3,
       },
     ],
   };
 
   return (
-    <div>
+    <div
+      style={{
+        position: "relative",
+        height: "400px",
+        width: "100%",
+      }}
+    >
       <Line options={options} data={data} />
     </div>
   );

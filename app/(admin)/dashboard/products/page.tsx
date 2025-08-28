@@ -62,24 +62,27 @@ export default function page() {
                   </span>
                 </td>
                 <td>
-                  <span
-                    className={` rounded-3xl text-center py-1 px-3 text-sm ms-3 ${
+                  <div
+                    className={` rounded-3xl text-center py-1 px-3 text-sm ms-3 font-semibold w-[100px] ${
                       prod.status === "Active"
-                        ? "bg-green-500 text-green-100"
+                        ? "bg-green-300 text-green-900"
                         : prod.status === "Low Stock"
-                        ? "bg-yellow-500 text-yellow-100"
+                        ? "bg-yellow-300 text-yellow-900"
                         : prod.status === "Inactive"
-                        ? "bg-red-500 text-red-100"
+                        ? "bg-red-300 text-red-900"
                         : ""
                     }`}
                   >
                     {prod.status}
-                  </span>
+                  </div>
                 </td>
                 <td className="items-center">
                   <div className="flex items-center gap-2 ms-4">
                     {" "}
-                    <Link href={`/product-view/${prod.id}`} className="">
+                    <Link
+                      href={`/dashboard/product-view/${prod.id}`}
+                      className=""
+                    >
                       <SquareArrowOutUpRight />
                     </Link>
                     <Link href={"/"} className="">

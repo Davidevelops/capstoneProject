@@ -34,7 +34,7 @@ export default function page() {
                       </p>
                     </div>
                     <div className="actions flex gap-3">
-                      <span className="text-red-500 bg-red-300 rounded py-1 px-3">
+                      <span className="text-red-900 bg-red-300 rounded py-1 px-3">
                         {stock.remainingUnits} units
                       </span>
                       <button className="text-gray-500">Dismiss</button>
@@ -60,7 +60,7 @@ export default function page() {
                       </p>
                     </div>
                     <div className="actions flex gap-3">
-                      <span className="text-yellow-800 bg-yellow-300 rounded py-1 px-3">
+                      <span className="text-yellow-900 bg-yellow-300 rounded py-1 px-3">
                         {stock.remainingUnits} units
                       </span>
                       <button className="text-gray-500">Dismiss</button>
@@ -86,7 +86,7 @@ export default function page() {
                       </p>
                     </div>
                     <div className="actions flex gap-3">
-                      <span className="text-green-800 bg-green-300 rounded py-1 px-3">
+                      <span className="text-green-900 bg-green-300 rounded py-1 px-3">
                         {stock.remainingUnits} units
                       </span>
                       <button className="text-gray-500">Dismiss</button>

@@ -45,8 +45,12 @@ export default function AddProduct() {
             onChange={(e) => setProductName(e.target.value)}
           />
 
-          <Button onClick={handleAddProduct} disabled={!productName.trim()}>
-            Save
+          <Button
+            onClick={handleAddProduct}
+            disabled={!productName.trim()}
+            className="bg-purple-500"
+          >
+            Add Product
           </Button>
         </div>
       </DialogContent>

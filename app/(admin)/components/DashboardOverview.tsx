@@ -15,7 +15,7 @@ export default function DashboardOverview() {
         </div>
         <div
           className="bg-white shadow rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-          onClick={() => router.push("/sales")}
+          onClick={() => router.push("/dashboard/sales")}
         >
           <div className="text-purple-500 font-semibold text-lg flex items-center gap-2">
             <SquareArrowOutUpRight />
@@ -30,7 +30,7 @@ export default function DashboardOverview() {
           </div>
           <div
             className="text-sm text-gray-500"
-            onClick={() => router.push("/products")}
+            onClick={() => router.push("/dashboard/products")}
           >
             All products in table
           </div>

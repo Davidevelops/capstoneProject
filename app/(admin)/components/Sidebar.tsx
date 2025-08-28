@@ -6,7 +6,7 @@ import {
   TriangleAlert,
   Settings,
   Blocks,
-  ChartNoAxesColumn,
+  Truck,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,9 +15,9 @@ export default function Sidebar() {
     { href: "/dashboard", label: "Dashboard", icon: ChartColumn },
     { href: "/dashboard/products", label: "Products", icon: Blocks },
     {
-      href: "/dashboard/analytics",
-      label: "Analytics",
-      icon: ChartNoAxesColumn,
+      href: "/dashboard/deliveries",
+      label: "Deliveries",
+      icon: Truck,
     },
     {
       href: "/dashboard/inventory",
@@ -51,7 +51,7 @@ export default function Sidebar() {
               <Link
                 href={link.href}
                 key={index}
-                className={`flex items-center gap-2 transition-colors duration-100 rounded-xl p-3 ${
+                className={`flex items-center gap-2 mt-2  hover:bg-purple-400 hover:text-purple-900 transition-all duration-300 rounded-xl p-3 ${
                   isActive ? "bg-purple-300 text-purple-900" : "text-gray-800"
                 }`}
               >

@@ -35,7 +35,7 @@ export default function Home() {
                     <td className="p-3 flex items-center gap-1">
                       <Boxes
                         size={40}
-                        className="border rounded p-1 bg-gray-300 text-purple-900"
+                        className="border rounded p-1 bg-gray-300"
                       />
                       {product.name}
                     </td>
@@ -45,32 +45,28 @@ export default function Home() {
                   </tr>
                   {Array.from({ length: product.variants }).map((_, idx) => (
                     <tr key={idx} className="border-b">
-                      <td className="p-3 pl-8 text-gray-700 flex items-center gap-1">
-                        <Box
-                          size={30}
-                          className="border rounded bg-gray-300 text-green-900 p-1"
-                        />{" "}
-                        Variant {idx + 1}
+                      <td className="p-3 pl-8 flex items-center gap-1">
+                        <Box size={25} /> Variant {idx + 1}
                       </td>
                       <td className="p-3">{product.currentStock} units</td>
                       <td className="p-3">{product.forecast || "-"}</td>
                       <td className="p-3">{product.restockDate || "-"}</td>
                       <td className="p-3">{product.restockQuantity || "-"}</td>
                       <td>
-                        <span
-                          className={`p-3 rounded-4xl text-sm text-white ${
+                        <div
+                          className={`py-1 px-3 rounded-xl text-sm font-semibold w-[200px] text-center ${
                             product.stockLevel === "Sufficient Stock"
-                              ? "bg-green-500"
+                              ? "bg-green-300 text-green-900"
                               : product.stockLevel === "Restock Immediately"
-                              ? "bg-yellow-500"
+                              ? "bg-yellow-300 text-yellow-900"
                               : product.stockLevel === "Out of Stock"
-                              ? "bg-red-500"
+                              ? "bg-red-300 text-red-900"
                               : ""
                           }`}
                         >
                           {" "}
                           {product.stockLevel}
-                        </span>
+                        </div>
                       </td>
                     </tr>
                   ))}
