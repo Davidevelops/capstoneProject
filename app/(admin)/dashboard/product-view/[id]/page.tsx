@@ -2,19 +2,21 @@
 
 import { useEffect } from "react";
 import { useProductStore } from "@/lib/productStore";
+import { useRouter } from "next/navigation";
 import {
   SquarePen,
   ChartLine,
   PackageCheck,
   Target,
   TriangleAlert,
+  Settings,
 } from "lucide-react";
 import React from "react";
 import LineChart from "@/app/(admin)/components/LineChart";
 
 export default function page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-
+  const router = useRouter();
   const { product, getSingleProduct, isLoading, error } = useProductStore();
   useEffect(() => {
     getSingleProduct(id);
@@ -35,6 +37,13 @@ export default function page({ params }: { params: Promise<{ id: string }> }) {
               <button className="flex bg-gray-500 text-white p-1 rounded gap-1 items-center text-sm">
                 <SquarePen />
                 Edit Product
+              </button>
+              <button
+                className="flex bg-gray-500 text-white p-1 rounded gap-1 items-center text-sm"
+                onClick={() => router.push(`/dashboard/productSettings/${id}`)}
+              >
+                <Settings />
+                Settings
               </button>
             </div>
           </div>
