@@ -13,7 +13,7 @@ export default async function page({ params }: pageProps) {
 
   const getProductDetails = async (): Promise<SingleProduct | null> => {
     try {
-      let api_url = process.env.PRODUCT_API as string;
+      let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
       let response = await axios.get(
         `${api_url}/${groupId}/products/${productId}`
       );

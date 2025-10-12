@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const getProductList = async (): Promise<ProductGroup[] | null> => {
   try {
-    let api_url = process.env.PRODUCT_API as string;
+    let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
     const response = await axios.get(api_url);
 
     return response.data.data;
