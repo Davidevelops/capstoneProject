@@ -1,3 +1,10 @@
+export interface ProductSetting {
+  classification: "fast" | "medium" | "slow";
+  serviceLevel: number;
+  fillRate: number;
+  safetyStockCalculationMethod: "dynamic" | "static" | "manual";
+}
+
 export interface SingleProduct {
   id: string;
   groupId: string;
@@ -8,6 +15,7 @@ export interface SingleProduct {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  setting: ProductSetting;
 }
 
 export interface ProductGroup {

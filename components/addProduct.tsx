@@ -55,7 +55,7 @@ export default function AddProduct() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="flex gap-2 items-center bg-purple-500 hover:bg-purple-600">
+        <Button className="flex gap-2 items-center bg-white text-purple-800 border border-purple-800 hover:bg-purple-50">
           <PlusCircle /> Add Product
         </Button>
       </DialogTrigger>
