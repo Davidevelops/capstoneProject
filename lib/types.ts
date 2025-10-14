@@ -32,3 +32,14 @@ export interface ProductGroup {
 export interface Product {
   products: ProductGroup[];
 }
+
+export interface Supplier {
+  id: string;
+  accountId: string;
+  name: string;
+  leadTime: number;
+  createdAt: string;
+  deletedAt: string | null;
+  updatedAt: string;
+  products: any[];
+}

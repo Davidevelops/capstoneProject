@@ -1,11 +1,11 @@
 "use client";
-
 import { useProductStore } from "@/lib/productStore";
 import DashboardOverview from "../components/DashboardOverview";
-import Supplier from "../components/Supplier";
+
 import { Boxes, Box } from "lucide-react";
 import { useEffect } from "react";
 import React from "react";
+import Supplier from "@/components/supplierSection";
 export default function Home() {
   const { isLoading, error, products, getProducts } = useProductStore();
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function Home() {
       <DashboardOverview />
       <div className="product-overview">
         <h1 className="text-3xl shadow p-3 my-6">Product Overview</h1>
-        <table className="w-full border-collapse">
+        {/* <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-100 text-left">
               <th className="p-5">Product Name</th>
@@ -73,7 +73,7 @@ export default function Home() {
                 </React.Fragment>
               ))}
           </tbody>
-        </table>
+        </table> */}
       </div>
       <Supplier />
     </div>
