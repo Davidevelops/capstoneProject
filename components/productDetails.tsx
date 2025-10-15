@@ -43,6 +43,7 @@ import {
   Eye,
   Download,
   Share2,
+  Copy,
 } from "lucide-react";
 import React, { useState } from "react";
 import LineChart from "@/app/(admin)/components/LineChart";
@@ -55,6 +56,7 @@ export default function ProductDetails({ product }: Props) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   const defaultSettings = product.setting || {
     classification: "fast",
@@ -116,6 +118,12 @@ export default function ProductDetails({ product }: Props) {
         [field]: value,
       }));
     }
+  };
+
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(product.id);
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 2000);
   };
 
   const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
@@ -221,6 +229,32 @@ export default function ProductDetails({ product }: Props) {
                       </div>
 
                       <div className="space-y-4">
+                        {/* Product ID Field */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-gray-600 flex items-center justify-between">
+                            <span>Product ID</span>
+                            <button
+                              type="button"
+                              onClick={handleCopyId}
+                              className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 transition-colors"
+                            >
+                              <Copy className="h-3 w-3" />
+                              {copyFeedback ? "Copied!" : "Copy"}
+                            </button>
+                          </label>
+                          <input
+                            type="text"
+                            value={product.id}
+                            readOnly
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                            onClick={(e) => e.currentTarget.select()}
+                          />
+                          <p className="text-xs text-gray-400">
+                            This ID is unique to this product and cannot be
+                            changed
+                          </p>
+                        </div>
+
                         <div className="space-y-3">
                           <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
                             <PackageCheck className="h-4 w-4 text-purple-600" />

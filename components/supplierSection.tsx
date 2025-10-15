@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Supplier as SupplierType } from "@/lib/types";
 import { getSuppliers } from "@/lib/data/routes/supplier/supplier";
