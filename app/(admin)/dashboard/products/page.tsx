@@ -41,8 +41,7 @@ export default function ProductsPage() {
   }, []);
 
   const totalProducts =
-    productGroups?.reduce((total, group) => total + group.products.length, 0) ||
-    0;
+    productGroups?.reduce((total, group) => total + (group.products?.length || 0), 0) || 0;
 
   if (loading) {
     return (

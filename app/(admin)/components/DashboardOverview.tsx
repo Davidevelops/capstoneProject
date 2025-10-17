@@ -43,10 +43,10 @@ export default function DashboardOverview() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">
                 Dashboard Overview
               </h1>
-              <p className="text-gray-600 mt-2 flex items-center gap-2">
+              <div className="text-gray-600 mt-2 flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 Welcome to your inventory management dashboard
-              </p>
+              </div>
             </div>
           </div>
 

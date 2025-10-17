@@ -1,4 +1,4 @@
-// lib/data/routes/supplier/supplier.ts
+
 import axios from "axios";
 import { Supplier } from "@/lib/types";
 
@@ -15,12 +15,12 @@ export const getSuppliers = async (): Promise<Supplier[] | null> => {
   }
 };
 
-// lib/data/routes/supplier/supplier.ts
+
 export const getSupplier = async (id: string): Promise<Supplier | null> => {
   const api_url = process.env.NEXT_PUBLIC_SUPPLIER_API as string;
 
   try {
-    // Add include=products to get the associated products
+
     const res = await axios.get(`${api_url}/${id}?include=products`);
     console.log("✅ API Response for supplier", id, ":", res.data);
     return res.data.data;
@@ -97,9 +97,6 @@ export const addProductToSupplier = async (
   }
 };
 
-// Add these to your lib/data/routes/supplier/supplier.ts file
-
-// Add these to your lib/data/routes/supplier/supplier.ts file
 
 export const updateSupplierProduct = async (
   supplierId: string,

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-// Define TypeScript interfaces for our data structures
 interface Holiday {
   name: string;
   date: string;

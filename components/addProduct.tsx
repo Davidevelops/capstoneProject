@@ -63,7 +63,7 @@ export default function AddProduct() {
       <DialogTrigger asChild>
         <Button className="flex gap-2 items-center bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-6 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 border-0">
           <PlusCircle className="h-5 w-5" />
-          Add Product
+          Add Product Group
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-white/95 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-xl max-w-md p-0 overflow-hidden">
@@ -157,7 +157,7 @@ export default function AddProduct() {
               ) : (
                 <>
                   <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Product
+                  Add Product Group
                 </>
               )}
             </Button>

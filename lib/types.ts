@@ -1,8 +1,28 @@
-export interface ProductSetting {
-  classification: "fast" | "medium" | "slow";
+export interface VariantSetting {
+  classification: string;
   serviceLevel: number;
   fillRate: number;
-  safetyStockCalculationMethod: "dynamic" | "static" | "manual";
+  safetyStockCalculationMethod: string;
+}
+
+export interface CreateVariantInput {
+  name: string;
+  setting?: {
+    classification: string;
+    serviceLevel: number;
+    fillRate: number;
+    safetyStockCalculationMethod: string;
+  };
+}
+
+export interface ProductVariant {
+  id: string;
+  name: string;
+  stock: number;
+  safetyStock: number;
+  updatedAt: string;
+  groupId: string;
+  setting?: VariantSetting;
 }
 
 export interface SingleProduct {
@@ -15,7 +35,7 @@ export interface SingleProduct {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-  setting: ProductSetting;
+  setting: VariantSetting;
 }
 
 export interface ProductGroup {
@@ -42,4 +62,21 @@ export interface Supplier {
   deletedAt: string | null;
   updatedAt: string;
   products: any[];
+}
+
+
+export interface Sale {
+  id: string;
+  accountId: string;
+  productId: string;
+  quantity: number;
+  status: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+export interface SalesResponse {
+  data: Sale[];
 }
