@@ -363,13 +363,14 @@ export default function SupplierList({ supplier }: supplierProp) {
         </div>
 
         {filteredSuppliers.length === 0 && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 shadow-xs border border-gray-100/80 text-center">
-            <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-4 rounded-2xl w-20 h-20 mx-auto mb-6">
-              <Truck className="h-10 w-10 text-gray-400 mx-auto" />
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 shadow-xs border border-gray-100/80 text-center ">
+            <div className="border p-6 rounded-2xl bg-purple-50 border-purple-200 w-xl mx-auto">
+            <div className="bg-white p-4 rounded-2xl w-20 h-20 mx-auto mb-6">
+              <Truck className="h-10 w-10  text-purple-600 mx-auto" />
             </div>
-            <h3 className="text-xl font-bold text-gray-700 mb-3">
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">
               No suppliers found
-            </h3>
+            </h2>
             <p className="text-gray-500 mb-8 text-lg">
               {searchTerm
                 ? "Try adjusting your search terms"
@@ -385,6 +386,7 @@ export default function SupplierList({ supplier }: supplierProp) {
                 </DialogTrigger>
               </Dialog>
             )}
+            </div>
           </div>
         )}
 

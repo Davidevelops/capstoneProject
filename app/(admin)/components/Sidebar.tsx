@@ -9,6 +9,7 @@ import {
   Truck,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,6 +24,7 @@ export default function Sidebar() {
     { href: "/dashboard/products", label: "Products", icon: Blocks },
     { href: "/dashboard/deliveries", label: "Deliveries", icon: Truck },
     { href: "/dashboard/inventory", label: "Inventory", icon: Warehouse },
+    { href: "/dashboard/accounts", label: "Manage Accounts", icon: Users },
     { href: "/dashboard/alerts", label: "Alerts", icon: TriangleAlert },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];

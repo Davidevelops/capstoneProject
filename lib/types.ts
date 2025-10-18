@@ -64,7 +64,6 @@ export interface Supplier {
   products: any[];
 }
 
-
 export interface Sale {
   id: string;
   accountId: string;
@@ -79,4 +78,27 @@ export interface Sale {
 
 export interface SalesResponse {
   data: Sale[];
+}
+
+export interface Account {
+  id: string;
+  username: string;
+  role: string;
+  createdAt: string;
+  permissions?: string[];
+}
+
+export interface CreateAccountRequest {
+  username: string;
+  password: string;
+  role: string;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+}
+
+export interface AssignPermissionsRequest {
+  permissions: string[];
 }
