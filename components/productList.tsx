@@ -13,6 +13,8 @@ import {
   Trash2,
   Plus,
   Eye,
+  Copy,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
@@ -39,6 +41,7 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 interface Props {
   productGroups: ProductGroup[];
@@ -56,9 +59,22 @@ export default function ProductList({ productGroups }: Props) {
     setting: undefined,
   });
   const [addMode, setAddMode] = useState<"partial" | "full">("partial");
-  
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const router = useRouter();
   const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
+
+  const handleCopyId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopiedId(id);
+      toast.success("ID copied to clipboard!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy ID: ", err);
+      toast.error("Failed to copy ID");
+    }
+  };
 
   const handleArchiveProduct = async (id: string) => {
     setIsLoading(true);
@@ -110,16 +126,32 @@ export default function ProductList({ productGroups }: Props) {
       return;
     }
 
-    // Validate full mode fields
     if (addMode === "full") {
-      const { classification, serviceLevel, fillRate, safetyStockCalculationMethod } = variantData.setting || {};
-      
-      if (!classification || serviceLevel === undefined || serviceLevel === null || fillRate === undefined || fillRate === null || !safetyStockCalculationMethod) {
+      const {
+        classification,
+        serviceLevel,
+        fillRate,
+        safetyStockCalculationMethod,
+      } = variantData.setting || {};
+
+      if (
+        !classification ||
+        serviceLevel === undefined ||
+        serviceLevel === null ||
+        fillRate === undefined ||
+        fillRate === null ||
+        !safetyStockCalculationMethod
+      ) {
         setError("All fields are required in Full mode");
         return;
       }
 
-      if (serviceLevel < 0 || serviceLevel > 100 || fillRate < 0 || fillRate > 100) {
+      if (
+        serviceLevel < 0 ||
+        serviceLevel > 100 ||
+        fillRate < 0 ||
+        fillRate > 100
+      ) {
         setError("Service Level and Fill Rate must be between 0 and 100");
         return;
       }
@@ -129,42 +161,36 @@ export default function ProductList({ productGroups }: Props) {
     setError("");
 
     try {
-      // Prepare the data based on add mode
       const requestData: any = {
         name: variantData.name.trim(),
       };
 
-      // Only include setting if full mode is selected and all fields are valid
       if (addMode === "full" && variantData.setting) {
         requestData.setting = {
           classification: variantData.setting.classification?.trim(),
           serviceLevel: Number(variantData.setting.serviceLevel),
           fillRate: Number(variantData.setting.fillRate),
-          safetyStockCalculationMethod: variantData.setting.safetyStockCalculationMethod?.trim()
+          safetyStockCalculationMethod:
+            variantData.setting.safetyStockCalculationMethod?.trim(),
         };
       }
 
-      // Fixed API URL - removed "/groups" since it's already in the base URL
       const variantApiUrl = `${api_url}/${groupId}/products`;
-      
+
       console.log("=== SENDING VARIANT DATA ===");
       console.log("API URL:", variantApiUrl);
       console.log("Group ID:", groupId);
       console.log("Base API URL:", api_url);
       console.log("Request Data:", JSON.stringify(requestData, null, 2));
 
-      const response = await axios.post(
-        variantApiUrl,
-        requestData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
+      const response = await axios.post(variantApiUrl, requestData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       console.log("Variant added successfully:", response.data);
-      
+
       setError("");
       setAddVariantOpen(false);
       resetVariantForm();
@@ -175,15 +201,17 @@ export default function ProductList({ productGroups }: Props) {
       console.error("Error response:", error.response?.data);
       console.error("Error status:", error.response?.status);
       console.error("Error message:", error.response?.data?.message);
-      
+
       let errorMessage = "An error occurred while trying to add variant";
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 400) {
-        errorMessage = "Invalid data format. Please check all fields and try again.";
+        errorMessage =
+          "Invalid data format. Please check all fields and try again.";
       } else if (error.response?.status === 404) {
-        errorMessage = "API endpoint not found. Please check the URL configuration.";
+        errorMessage =
+          "API endpoint not found. Please check the URL configuration.";
       }
 
       setError(errorMessage);
@@ -199,7 +227,7 @@ export default function ProductList({ productGroups }: Props) {
         classification: "",
         serviceLevel: 90,
         fillRate: 90,
-        safetyStockCalculationMethod: "dynamic"
+        safetyStockCalculationMethod: "dynamic",
       },
     });
     setAddMode("partial");
@@ -213,35 +241,48 @@ export default function ProductList({ productGroups }: Props) {
   };
 
   const handleVariantFieldChange = (field: string, value: any) => {
-    setVariantData(prev => ({
+    setVariantData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const handleSettingFieldChange = (field: keyof VariantSetting, value: any) => {
-    setVariantData(prev => ({
+  const handleSettingFieldChange = (
+    field: keyof VariantSetting,
+    value: any
+  ) => {
+    setVariantData((prev) => ({
       ...prev,
       setting: {
         ...prev.setting,
-        [field]: (field === 'serviceLevel' || field === 'fillRate') ? Number(value) : value
-      } as VariantSetting
+        [field]:
+          field === "serviceLevel" || field === "fillRate"
+            ? Number(value)
+            : value,
+      } as VariantSetting,
     }));
   };
 
   const isFormValid = () => {
     if (!variantData.name.trim()) return false;
-    
+
     if (addMode === "full") {
-      const { classification, serviceLevel, fillRate, safetyStockCalculationMethod } = variantData.setting || {};
-      return !!(classification?.trim() && 
-               serviceLevel !== undefined && 
-               serviceLevel !== null && 
-               fillRate !== undefined && 
-               fillRate !== null && 
-               safetyStockCalculationMethod?.trim());
+      const {
+        classification,
+        serviceLevel,
+        fillRate,
+        safetyStockCalculationMethod,
+      } = variantData.setting || {};
+      return !!(
+        classification?.trim() &&
+        serviceLevel !== undefined &&
+        serviceLevel !== null &&
+        fillRate !== undefined &&
+        fillRate !== null &&
+        safetyStockCalculationMethod?.trim()
+      );
     }
-    
+
     return true;
   };
 
@@ -289,11 +330,23 @@ export default function ProductList({ productGroups }: Props) {
                       <span>Forecast Ready</span>
                     </div>
                   </div>
+                  <button
+                    onClick={() => handleCopyId(group.id)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors duration-200 mt-1 group/copy"
+                  >
+                    <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded border">
+                      Group ID: {group.id.slice(0, 8)}...
+                    </span>
+                    {copiedId === group.id ? (
+                      <Check className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <Copy className="h-3 w-3 opacity-0 group-hover/copy:opacity-100 transition-opacity" />
+                    )}
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Add Variant Dialog */}
                 <Dialog open={addVariantOpen} onOpenChange={setAddVariantOpen}>
                   <DialogTrigger asChild>
                     <Button
@@ -318,10 +371,12 @@ export default function ProductList({ productGroups }: Props) {
                       <div className="flex gap-2 mb-4">
                         <Button
                           type="button"
-                          variant={addMode === "partial" ? "default" : "outline"}
+                          variant={
+                            addMode === "partial" ? "default" : "outline"
+                          }
                           className={`flex-1 ${
-                            addMode === "partial" 
-                              ? "bg-purple-500 hover:bg-purple-600" 
+                            addMode === "partial"
+                              ? "bg-purple-500 hover:bg-purple-600"
                               : "border-purple-200"
                           }`}
                           onClick={() => setAddMode("partial")}
@@ -332,8 +387,8 @@ export default function ProductList({ productGroups }: Props) {
                           type="button"
                           variant={addMode === "full" ? "default" : "outline"}
                           className={`flex-1 ${
-                            addMode === "full" 
-                              ? "bg-purple-500 hover:bg-purple-600" 
+                            addMode === "full"
+                              ? "bg-purple-500 hover:bg-purple-600"
                               : "border-purple-200"
                           }`}
                           onClick={() => setAddMode("full")}
@@ -342,63 +397,96 @@ export default function ProductList({ productGroups }: Props) {
                         </Button>
                       </div>
 
-                      {/* Variant Name Field */}
                       <div>
                         <Label className="text-gray-700">Variant Name *</Label>
                         <Input
                           value={variantData.name}
-                          onChange={(e) => handleVariantFieldChange("name", e.target.value)}
+                          onChange={(e) =>
+                            handleVariantFieldChange("name", e.target.value)
+                          }
                           className="mt-1 border-purple-200 focus:border-purple-500"
                           placeholder="Enter variant name..."
                         />
                       </div>
 
-                      {/* Full Mode Fields */}
                       {addMode === "full" && (
                         <div className="space-y-3 border-t pt-3">
-                          <Label className="text-gray-700 font-semibold">Settings *</Label>
-                          
+                          <Label className="text-gray-700 font-semibold">
+                            Settings *
+                          </Label>
+
                           <div>
-                            <Label className="text-gray-600 text-sm">Classification *</Label>
+                            <Label className="text-gray-600 text-sm">
+                              Classification *
+                            </Label>
                             <Input
                               value={variantData.setting?.classification || ""}
-                              onChange={(e) => handleSettingFieldChange("classification", e.target.value)}
+                              onChange={(e) =>
+                                handleSettingFieldChange(
+                                  "classification",
+                                  e.target.value
+                                )
+                              }
                               className="mt-1 border-purple-200 focus:border-purple-500"
                               placeholder="e.g., fast"
                             />
                           </div>
 
                           <div>
-                            <Label className="text-gray-600 text-sm">Service Level (%) *</Label>
+                            <Label className="text-gray-600 text-sm">
+                              Service Level (%) *
+                            </Label>
                             <Input
                               type="number"
                               min="0"
                               max="100"
                               value={variantData.setting?.serviceLevel ?? ""}
-                              onChange={(e) => handleSettingFieldChange("serviceLevel", e.target.value)}
+                              onChange={(e) =>
+                                handleSettingFieldChange(
+                                  "serviceLevel",
+                                  e.target.value
+                                )
+                              }
                               className="mt-1 border-purple-200 focus:border-purple-500"
                               placeholder="90"
                             />
                           </div>
 
                           <div>
-                            <Label className="text-gray-600 text-sm">Fill Rate (%) *</Label>
+                            <Label className="text-gray-600 text-sm">
+                              Fill Rate (%) *
+                            </Label>
                             <Input
                               type="number"
                               min="0"
                               max="100"
                               value={variantData.setting?.fillRate ?? ""}
-                              onChange={(e) => handleSettingFieldChange("fillRate", e.target.value)}
+                              onChange={(e) =>
+                                handleSettingFieldChange(
+                                  "fillRate",
+                                  e.target.value
+                                )
+                              }
                               className="mt-1 border-purple-200 focus:border-purple-500"
                               placeholder="90"
                             />
                           </div>
 
                           <div>
-                            <Label className="text-gray-600 text-sm">Safety Stock Method *</Label>
+                            <Label className="text-gray-600 text-sm">
+                              Safety Stock Method *
+                            </Label>
                             <Input
-                              value={variantData.setting?.safetyStockCalculationMethod || ""}
-                              onChange={(e) => handleSettingFieldChange("safetyStockCalculationMethod", e.target.value)}
+                              value={
+                                variantData.setting
+                                  ?.safetyStockCalculationMethod || ""
+                              }
+                              onChange={(e) =>
+                                handleSettingFieldChange(
+                                  "safetyStockCalculationMethod",
+                                  e.target.value
+                                )
+                              }
                               className="mt-1 border-purple-200 focus:border-purple-500"
                               placeholder="e.g., dynamic"
                             />
@@ -492,8 +580,8 @@ export default function ProductList({ productGroups }: Props) {
                       <AlertDialogDescription className="text-gray-600">
                         This will archive the entire "
                         <strong>{group.name}</strong>" group including all{" "}
-                        {productCount} products. Archived data is
-                        preserved for analytics and can be restored later.
+                        {productCount} products. Archived data is preserved for
+                        analytics and can be restored later.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -539,14 +627,30 @@ export default function ProductList({ productGroups }: Props) {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 text-xs text-gray-500 mb-1">
                           <Calendar className="h-3 w-3" />
                           Last updated:{" "}
                           {new Date(product.updatedAt).toLocaleDateString()}
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleCopyId(product.id);
+                          }}
+                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors duration-200 group/copy"
+                        >
+                          <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded border">
+                            Variant ID: {product.id.slice(0, 8)}...
+                          </span>
+                          {copiedId === product.id ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <Copy className="h-3 w-3 opacity-0 group-hover/copy:opacity-100 transition-opacity" />
+                          )}
+                        </button>
                       </Link>
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* View Sales Button */}
                         <Link
                           href={`/dashboard/variantSales/${product.groupId}/variants/${product.id}/sales`}
                         >

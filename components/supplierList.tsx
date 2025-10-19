@@ -27,6 +27,8 @@ import {
   RefreshCw,
   BarChart3,
   Shield,
+  Copy,
+  Check,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -60,6 +62,7 @@ export default function SupplierList({ supplier }: supplierProp) {
   );
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [newSupplier, setNewSupplier] = useState({
     name: "",
@@ -84,6 +87,18 @@ export default function SupplierList({ supplier }: supplierProp) {
     setRefreshing(true);
     router.refresh();
     setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const handleCopyId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopiedId(id);
+      toast.success("Supplier ID copied to clipboard!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy ID: ", err);
+      toast.error("Failed to copy ID");
+    }
   };
 
   const filteredSuppliers =
@@ -358,34 +373,43 @@ export default function SupplierList({ supplier }: supplierProp) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {filteredSuppliers.map((sup) => (
-            <SupplierCard key={sup.id} supplier={sup} router={router} />
+            <SupplierCard
+              key={sup.id}
+              supplier={sup}
+              router={router}
+              onCopyId={handleCopyId}
+              isCopied={copiedId === sup.id}
+            />
           ))}
         </div>
 
         {filteredSuppliers.length === 0 && (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 shadow-xs border border-gray-100/80 text-center ">
             <div className="border p-6 rounded-2xl bg-purple-50 border-purple-200 w-xl mx-auto">
-            <div className="bg-white p-4 rounded-2xl w-20 h-20 mx-auto mb-6">
-              <Truck className="h-10 w-10  text-purple-600 mx-auto" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-3">
-              No suppliers found
-            </h2>
-            <p className="text-gray-500 mb-8 text-lg">
-              {searchTerm
-                ? "Try adjusting your search terms"
-                : "Get started by adding your first supplier"}
-            </p>
-            {!searchTerm && (
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <button className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30">
-                    <Plus className="h-5 w-5" />
-                    Add Your First Supplier
-                  </button>
-                </DialogTrigger>
-              </Dialog>
-            )}
+              <div className="bg-white p-4 rounded-2xl w-20 h-20 mx-auto mb-6">
+                <Truck className="h-10 w-10  text-purple-600 mx-auto" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                No suppliers found
+              </h2>
+              <p className="text-gray-500 mb-8 text-lg">
+                {searchTerm
+                  ? "Try adjusting your search terms"
+                  : "Get started by adding your first supplier"}
+              </p>
+              {!searchTerm && (
+                <Dialog
+                  open={isAddDialogOpen}
+                  onOpenChange={setIsAddDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <button className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30">
+                      <Plus className="h-5 w-5" />
+                      Add Your First Supplier
+                    </button>
+                  </DialogTrigger>
+                </Dialog>
+              )}
             </div>
           </div>
         )}
@@ -404,9 +428,22 @@ export default function SupplierList({ supplier }: supplierProp) {
               <div className="space-y-4 text-sm">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Supplier ID:</span>
-                  <span className="font-medium text-gray-800">
-                    {selectedSupplier.id}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded border">
+                      {selectedSupplier.id}
+                    </span>
+                    <button
+                      onClick={() => handleCopyId(selectedSupplier.id)}
+                      className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 transition-colors"
+                    >
+                      {copiedId === selectedSupplier.id ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                      Copy
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Lead Time:</span>
@@ -450,9 +487,13 @@ export default function SupplierList({ supplier }: supplierProp) {
 function SupplierCard({
   supplier,
   router,
+  onCopyId,
+  isCopied,
 }: {
   supplier: Supplier;
   router: any;
+  onCopyId: (id: string) => void;
+  isCopied: boolean;
 }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -529,9 +570,19 @@ function SupplierCard({
             <h3 className="text-lg font-semibold text-gray-800 group-hover:text-purple-600 transition-colors duration-200 line-clamp-1">
               {supplier.name}
             </h3>
-            <p className="text-sm text-gray-500">
-              ID: {supplier.id.slice(0, 8)}...
-            </p>
+            <button
+              onClick={() => onCopyId(supplier.id)}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors duration-200 group/copy"
+            >
+              <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded border">
+                ID: {supplier.id.slice(0, 8)}...
+              </span>
+              {isCopied ? (
+                <Check className="h-3 w-3 text-green-500" />
+              ) : (
+                <Copy className="h-3 w-3 opacity-0 group-hover/copy:opacity-100 transition-opacity" />
+              )}
+            </button>
           </div>
         </div>
       </div>

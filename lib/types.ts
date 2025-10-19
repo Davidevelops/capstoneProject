@@ -109,3 +109,61 @@ export interface Permission {
 export interface AssignPermissionsRequest {
   permissions: string[];
 }
+
+export interface DeliveryProduct {
+  id: string;
+  name: string;
+  stock: number;
+}
+
+export interface DeliveryItem {
+  id: string;
+  product: DeliveryProduct;
+  quantity: number;
+}
+
+export interface DeliverySupplier {
+  id: string;
+  leadTime: number;
+  name: string;
+}
+
+export interface Delivery {
+  id: string;
+  accountId: string;
+  status: string;
+  requestedAt: string;
+  scheduledArrivalDate: string;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  supplier: DeliverySupplier;
+  items: DeliveryItem[];
+}
+
+export interface DeliveriesResponse {
+  data: Delivery[];
+}
+
+export interface CreateDeliveryItem {
+  productId: string;
+  quantity: number;
+}
+
+export interface CreateDeliveryData {
+  items: CreateDeliveryItem[];
+  status: string;
+  supplierId: string;
+}
+
+export interface UpdateDeliveryStatusData {
+  status: string;
+  cancelledAt?: string;
+}
+
+export interface UpdateDeliveryScheduleData {
+  requestedAt: string;
+  scheduledArrivalDate: string;
+}
