@@ -9,7 +9,7 @@ import axios from "axios";
 export const getAccounts = async (): Promise<Account[] | null> => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.get(api_url);
+    const response = await axios.get(`${api_url}?include=permissions`);
 
     return response.data.data;
   } catch (error) {
@@ -17,7 +17,6 @@ export const getAccounts = async (): Promise<Account[] | null> => {
     return null;
   }
 };
-
 export const createAccount = async (accountData: CreateAccountRequest) => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
@@ -51,36 +50,23 @@ export const getAvailablePermissions = async (): Promise<
   }
 };
 
-export const assignPermissions = async (
-  accountId: string,
-  permissionId: string
-) => {
+export const addAccountPermissions = async (
+  accountId: string
+): Promise<Permission[] | null> => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.post(
-      `${api_url}/${accountId}/permissions`,
-      {
-        permissionId: permissionId,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error: any) {
-    console.error("Error while assigning permissions: ", error);
-    console.error("Error details:", error.response?.data);
-    throw error;
+    const response = await axios.post(`${api_url}/${accountId}/permissions`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error while adding account permissions: ", error);
+    return null;
   }
 };
 
 export const updateAccount = async (
   accountId: string,
-  accountData: Partial<CreateAccountRequest>
-): Promise<Account> => {
+  accountData: { username: string; role: string }
+) => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
     const response = await axios.patch(`${api_url}/${accountId}`, accountData, {
@@ -89,6 +75,7 @@ export const updateAccount = async (
       },
     });
 
+    console.log("Update response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Error while updating account: ", error);
@@ -97,12 +84,40 @@ export const updateAccount = async (
   }
 };
 
-export const deleteAccount = async (accountId: string): Promise<void> => {
+export const deleteAccount = async (accountId: string) => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    await axios.delete(`${api_url}/${accountId}`);
+    const response = await axios.delete(`${api_url}/${accountId}`);
+
+    console.log("Delete response:", response.data);
+    return response.data;
   } catch (error: any) {
     console.error("Error while deleting account: ", error);
+    console.error("Error details:", error.response?.data);
+    throw error;
+  }
+};
+
+export const changePassword = async (
+  accountId: string,
+  passwordData: { password: string }
+) => {
+  try {
+    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
+    const response = await axios.put(
+      `${api_url}/${accountId}/password`,
+      passwordData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Password change response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error while changing password: ", error);
     console.error("Error details:", error.response?.data);
     throw error;
   }

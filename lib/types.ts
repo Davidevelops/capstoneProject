@@ -80,12 +80,19 @@ export interface SalesResponse {
   data: Sale[];
 }
 
+export interface AccountPermission {
+  id: string;
+  name: string;
+}
+
 export interface Account {
   id: string;
   username: string;
   role: string;
   createdAt: string;
-  permissions?: string[];
+  updatedAt: string;
+  deletedAt: string | null;
+  permissions?: AccountPermission[];
 }
 
 export interface CreateAccountRequest {
