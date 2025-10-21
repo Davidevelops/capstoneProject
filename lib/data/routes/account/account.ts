@@ -51,7 +51,7 @@ export const getAvailablePermissions = async (): Promise<
 };
 
 export const addAccountPermissions = async (
-  accountId: string
+  accountId: string,
 ): Promise<Permission[] | null> => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
@@ -65,7 +65,7 @@ export const addAccountPermissions = async (
 
 export const updateAccount = async (
   accountId: string,
-  accountData: { username: string; role: string }
+  accountData: { username: string; role: string },
 ) => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
@@ -100,7 +100,7 @@ export const deleteAccount = async (accountId: string) => {
 
 export const changePassword = async (
   accountId: string,
-  passwordData: { password: string }
+  passwordData: { password: string },
 ) => {
   try {
     let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
@@ -111,7 +111,7 @@ export const changePassword = async (
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     console.log("Password change response:", response.data);

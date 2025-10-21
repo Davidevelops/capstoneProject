@@ -1,45 +1,113 @@
+"use client";
+
+import { useState } from "react";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
+
 export default function LogIn() {
-  return (
-    <div className="border-red-600 w-screen h-screen flex justify-center items-center">
-      <div className="form-container flex  p-3 min-w-[900px] max-w-[1500px] rounded-2xl shadow-2xl items-center justify-center">
-        <form action="" className="p-8">
-          <div>
-            <h1 className="text-3xl my-1">Welcome Back!</h1>
-            <p className="ms-1 text-gray-500">log in to your account.</p>
-          </div>
-          <div className="inputs-container my-6">
-            <div className="input-group flex flex-col">
-              <label htmlFor="email" className="text-xl">
-                Email
-              </label>
-              <input type="email" className="border p-1 w-[300px] rounded" />
-            </div>
-            <div className="input-group flex flex-col">
-              <label htmlFor="password" className="text-xl">
-                Password
-              </label>
-              <input type="password" className="border p-1 w-[300px] rounded" />
-            </div>
-            <Link href={"/"} className="text-[12px] text-blue-500">
-              forgot password
-            </Link>
-          </div>
-          <div></div>
-          <button className="rounded bg-purple-500 w-full text-white py-1">
-            Log in
-          </button>
-        </form>
-        <div className="image-container w-[50%] min-h-[600px] max-h-[1200px] relative">
-          <Image
-            src={"/assets/authImage.jpg"}
-            alt="auth image"
-            fill
-            className="object-contain"
-          ></Image>
-        </div>
-      </div>
-    </div>
-  );
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
+	const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState(false);
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError(null);
+		setLoading(true);
+
+		try {
+			const response = await axios.post(
+				"http://localhost:8000/auth/login",
+				{
+					username,
+					password,
+				},
+				{
+					withCredentials: true, // ✅ important for session cookies
+				},
+			);
+
+			console.log("Login success:", response.data);
+
+			// Example redirect after successful login
+			window.location.href = "/dashboard";
+		} catch (err: any) {
+			console.error("Login error:", err);
+			setError(
+				err.response?.data?.error ||
+				"Invalid username or password. Please try again.",
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return (
+		<div className="w-screen h-screen flex justify-center items-center">
+			<div className="form-container flex p-3 min-w-[900px] max-w-[1500px] rounded-2xl shadow-2xl items-center justify-center">
+				<form onSubmit={handleSubmit} className="p-8">
+					<div>
+						<h1 className="text-3xl my-1">Welcome Back!</h1>
+						<p className="ms-1 text-gray-500">Log in to your account.</p>
+					</div>
+
+					<div className="inputs-container my-6">
+						<div className="input-group flex flex-col mb-3">
+							<label htmlFor="username" className="text-xl">
+								Username
+							</label>
+							<input
+								type="text"
+								id="username"
+								className="border p-1 w-[300px] rounded"
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
+								required
+							/>
+						</div>
+
+						<div className="input-group flex flex-col mb-3">
+							<label htmlFor="password" className="text-xl">
+								Password
+							</label>
+							<input
+								type="password"
+								id="password"
+								className="border p-1 w-[300px] rounded"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								required
+							/>
+						</div>
+
+						<Link href="/" className="text-[12px] text-blue-500">
+							Forgot password?
+						</Link>
+					</div>
+
+					{error && (
+						<p className="text-red-500 text-sm my-2">⚠️ {error}</p>
+					)}
+
+					<button
+						type="submit"
+						disabled={loading}
+						className="rounded bg-purple-500 w-full text-white py-1 disabled:opacity-50"
+					>
+						{loading ? "Logging in..." : "Log in"}
+					</button>
+				</form>
+
+				<div className="image-container w-[50%] min-h-[600px] max-h-[1200px] relative">
+					<Image
+						src={"/assets/authImage.jpg"}
+						alt="auth image"
+						fill
+						className="object-contain"
+					/>
+				</div>
+			</div>
+		</div>
+	);
 }

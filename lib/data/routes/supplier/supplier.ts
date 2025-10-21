@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { Supplier } from "@/lib/types";
 
@@ -15,12 +14,10 @@ export const getSuppliers = async (): Promise<Supplier[] | null> => {
   }
 };
 
-
 export const getSupplier = async (id: string): Promise<Supplier | null> => {
   const api_url = process.env.NEXT_PUBLIC_SUPPLIER_API as string;
 
   try {
-
     const res = await axios.get(`${api_url}/${id}?include=products`);
     console.log("✅ API Response for supplier", id, ":", res.data);
     return res.data.data;
@@ -32,7 +29,7 @@ export const getSupplier = async (id: string): Promise<Supplier | null> => {
 
 export const updateSupplier = async (
   supplierId: string,
-  data: { name: string; leadTime: number }
+  data: { name: string; leadTime: number },
 ): Promise<Supplier | null> => {
   const api_url = process.env.NEXT_PUBLIC_SUPPLIER_API as string;
 
@@ -74,14 +71,14 @@ export const createSupplier = async (data: {
 
 export const addProductToSupplier = async (
   supplierId: string,
-  data: { productId: string; min: number; max: number }
+  data: { productId: string; min: number; max: number },
 ): Promise<Supplier | null> => {
   const api_url = process.env.NEXT_PUBLIC_SUPPLIER_API as string;
 
   try {
     console.log(
       "🚀 Making API request to:",
-      `${api_url}/${supplierId}/products`
+      `${api_url}/${supplierId}/products`,
     );
     console.log("📦 Request data:", data);
 
@@ -97,11 +94,10 @@ export const addProductToSupplier = async (
   }
 };
 
-
 export const updateSupplierProduct = async (
   supplierId: string,
   productId: string,
-  data: { min: number; max: number }
+  data: { min: number; max: number },
 ): Promise<Supplier | null> => {
   const api_url = process.env.NEXT_PUBLIC_SUPPLIER_API as string;
 
@@ -113,7 +109,7 @@ export const updateSupplierProduct = async (
     });
     const res = await axios.patch(
       `${api_url}/${supplierId}/products/${productId}`,
-      data
+      data,
     );
     console.log("✅ Supplier product updated:", res.data);
     return res.data.data;
@@ -125,7 +121,7 @@ export const updateSupplierProduct = async (
 
 export const deleteSupplierProduct = async (
   supplierId: string,
-  productId: string
+  productId: string,
 ): Promise<boolean> => {
   const api_url = process.env.NEXT_PUBLIC_SUPPLIER_API as string;
 
