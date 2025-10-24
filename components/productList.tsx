@@ -15,6 +15,11 @@ import {
   Eye,
   Copy,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
@@ -38,7 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
@@ -46,6 +51,8 @@ interface Props {
   productGroups: ProductGroup[];
   refreshProducts: () => Promise<void>;
 }
+
+const ITEMS_PER_PAGE = 3;
 
 export default function ProductList({ productGroups, refreshProducts }: Props) {
   const [productName, setProductName] = useState<string>("");
@@ -60,8 +67,37 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
   });
   const [addMode, setAddMode] = useState<"partial" | "full">("partial");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
 
   const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const filteredProductGroups = productGroups.filter((group) =>
+    group.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalItems = filteredProductGroups.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProductGroups = filteredProductGroups.slice(
+    startIndex,
+    endIndex
+  );
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToNextPage = () => goToPage(currentPage + 1);
+  const goToPrevPage = () => goToPage(currentPage - 1);
 
   const handleCopyId = async (id: string) => {
     try {
@@ -81,7 +117,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
     try {
       await axios.delete(`${api_url}/${id}`);
       setError("");
-      await refreshProducts(); // Auto-refresh after archiving
+      await refreshProducts();
       toast.success("Product group archived successfully!");
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -115,7 +151,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
       setError("");
       setIsOpen(false);
       setProductName("");
-      await refreshProducts(); // Auto-refresh after update
+      await refreshProducts();
       toast.success("Product group updated successfully!");
     } catch (err) {
       console.error("An error while trying to update product: ", err);
@@ -190,32 +226,18 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 
       const variantApiUrl = `${api_url}/${groupId}/products`;
 
-      console.log("=== SENDING VARIANT DATA ===");
-      console.log("API URL:", variantApiUrl);
-      console.log("Group ID:", groupId);
-      console.log("Base API URL:", api_url);
-      console.log("Request Data:", JSON.stringify(requestData, null, 2));
-
       await axios.post(variantApiUrl, requestData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      console.log("Variant added successfully");
-
       setError("");
       setAddVariantOpen(false);
       resetVariantForm();
-      await refreshProducts(); // Auto-refresh after adding variant
+      await refreshProducts();
       toast.success("Variant added successfully!");
     } catch (error: any) {
-      console.error("=== FULL ERROR DETAILS ===");
-      console.error("Error object:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      console.error("Error message:", error.response?.data?.message);
-
       let errorMessage = "An error occurred while trying to add variant";
 
       if (error.response?.data?.message) {
@@ -317,7 +339,22 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 
   return (
     <div className="space-y-6">
-      {productGroups.map((group) => {
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xs border border-purple-100/80">
+        <div className="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search product groups by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      {currentProductGroups.map((group) => {
         const products = group.products || [];
         const productCount = products.length;
 
@@ -382,7 +419,6 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
                       </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                      {/* Add Mode Selection */}
                       <div className="flex gap-2 mb-4">
                         <Button
                           type="button"
@@ -526,7 +562,6 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
                   </DialogContent>
                 </Dialog>
 
-                {/* Edit Dialog */}
                 <Dialog open={open} onOpenChange={setIsOpen}>
                   <DialogTrigger asChild>
                     <Button
@@ -572,7 +607,6 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
                   </DialogContent>
                 </Dialog>
 
-                {/* Archive Dialog */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
@@ -696,6 +730,117 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
           </div>
         );
       })}
+
+      {filteredProductGroups.length === 0 && (
+        <div className="text-center py-12 bg-white border border-purple-100 rounded-2xl">
+          <Package className="mx-auto h-16 w-16 text-purple-300 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-600">
+            No product groups found
+          </h3>
+          <p className="text-gray-500">
+            {searchTerm
+              ? "Try adjusting your search terms"
+              : "No product groups available"}
+          </p>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xs border border-purple-100/80">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-gray-600">
+              Showing{" "}
+              <span className="font-semibold text-gray-800">
+                {startIndex + 1}-{Math.min(endIndex, totalItems)}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-gray-800">{totalItems}</span>{" "}
+              product group{totalItems !== 1 ? "s" : ""}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goToFirstPage}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-purple-200 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <ChevronsLeft className="h-4 w-4 text-purple-600" />
+              </button>
+
+              <button
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-purple-200 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <ChevronLeft className="h-4 w-4 text-purple-600" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`min-w-[40px] h-10 rounded-lg border transition-all duration-200 font-medium ${
+                        currentPage === pageNum
+                          ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/25"
+                          : "border-purple-200 text-gray-700 hover:bg-purple-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-purple-200 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <ChevronRight className="h-4 w-4 text-purple-600" />
+              </button>
+
+              <button
+                onClick={goToLastPage}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-purple-200 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <ChevronsRight className="h-4 w-4 text-purple-600" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-600">Show:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="border border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+              >
+                <option value={3}>3</option>
+                <option value={6}>6</option>
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+              </select>
+              <span className="text-gray-600">per page</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
