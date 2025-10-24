@@ -18,7 +18,7 @@ export default function LogIn() {
 
 		try {
 			const response = await axios.post(
-				"http://localhost:8000/auth/login",
+				`${process.env.NEXT_PUBLIC_BASE_API}/auth/login`,
 				{
 					username,
 					password,

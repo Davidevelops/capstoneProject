@@ -65,9 +65,16 @@ export default function ProductDetails({ product }: Props) {
   >([]);
   const [loading, setLoading] = useState(true);
 
+<<<<<<< HEAD
   const [forecastData, setForecastData] = useState<
     { date: string; yhat: number; yhatLower: number; yhatUpper: number }[]
   >([]);
+=======
+
+	const [forecastData, setForecastData] = useState<
+		{ date: string; yhat: number; yhatLower: number; yhatUpper: number }[]
+	>([]);
+>>>>>>> d507c529f1c999fad761fd943131c92c48b914fb
 
   const [metrics, setMetrics] = useState({
     totalSales: 0,
@@ -93,6 +100,7 @@ export default function ProductDetails({ product }: Props) {
 
   const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
 
+<<<<<<< HEAD
   useEffect(() => {
     if (!loading && chartContainerRef.current) {
       const el = chartContainerRef.current;
@@ -102,6 +110,15 @@ export default function ProductDetails({ product }: Props) {
       });
     }
   }, [loading, salesData, forecastData]);
+=======
+	const [isForecastDialogOpen, setIsForecastDialogOpen] = useState(false);
+	const [forecastForm, setForecastForm] = useState({
+		dataDepth: 100,
+		forecastStartDate: new Date().toISOString().split("T")[0],
+		forecastEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+	});
+	const [isForecasting, setIsForecasting] = useState(false);
+>>>>>>> d507c529f1c999fad761fd943131c92c48b914fb
 
   useEffect(() => {
     const fetchData = async () => {
@@ -235,11 +252,35 @@ export default function ProductDetails({ product }: Props) {
     }
   };
 
+<<<<<<< HEAD
   const handleCopyId = () => {
     navigator.clipboard.writeText(product.id);
     setCopyFeedback(true);
     setTimeout(() => setCopyFeedback(false), 2000);
   };
+=======
+	const handleGenerateForecast = async () => {
+		try {
+			setIsForecasting(true);
+			const payload = {
+				dataDepth: forecastForm.dataDepth,
+				forecastStartDate: forecastForm.forecastStartDate,
+				forecastEndDate: forecastForm.forecastEndDate,
+			};
+			await axios.post(
+				`${api_url}/${product.groupId}/products/${product.id}/forecasts`,
+				payload,
+			);
+			setIsForecastDialogOpen(false);
+			router.refresh();
+		} catch (error) {
+			console.error("Error generating forecast:", error);
+			alert("Failed to generate forecast. Check console for details.");
+		} finally {
+			setIsForecasting(false);
+		}
+	};
+>>>>>>> d507c529f1c999fad761fd943131c92c48b914fb
 
   const handleSave = async (id: string, groupId: string) => {
     try {
@@ -355,6 +396,7 @@ export default function ProductDetails({ product }: Props) {
                         </AlertDialogCancel>
                       </div>
 
+<<<<<<< HEAD
                       <div className="space-y-4">
                         {/* Product ID */}
                         <div className="space-y-2">
@@ -380,6 +422,92 @@ export default function ProductDetails({ product }: Props) {
                             changed
                           </p>
                         </div>
+=======
+							<div className="flex items-center gap-3">
+								{/* Forecast Button */}
+								<Dialog open={isForecastDialogOpen} onOpenChange={setIsForecastDialogOpen}>
+									<DialogTrigger asChild>
+										<button className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 shadow-sm">
+											<ChartLine className="h-5 w-5" />
+											Generate Forecast
+										</button>
+									</DialogTrigger>
+
+									<DialogContent className="sm:max-w-[425px] bg-white border border-purple-100 rounded-2xl">
+										<DialogHeader className="space-y-2">
+											<DialogTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+												<ChartLine className="h-5 w-5 text-purple-600" />
+												Generate Forecast
+											</DialogTitle>
+											<DialogDescription className="text-gray-600 text-sm">
+												Configure the forecast parameters below before generating.
+											</DialogDescription>
+										</DialogHeader>
+
+										<div className="space-y-4 py-4">
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Data Depth (days)
+												</label>
+												<input
+													type="number"
+													value={forecastForm.dataDepth}
+													onChange={(e) =>
+														setForecastForm({ ...forecastForm, dataDepth: parseInt(e.target.value) })
+													}
+													className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+												/>
+											</div>
+
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Forecast Start Date
+												</label>
+												<input
+													type="date"
+													value={forecastForm.forecastStartDate}
+													onChange={(e) =>
+														setForecastForm({ ...forecastForm, forecastStartDate: e.target.value })
+													}
+													className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+												/>
+											</div>
+
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Forecast End Date
+												</label>
+												<input
+													type="date"
+													value={forecastForm.forecastEndDate}
+													onChange={(e) =>
+														setForecastForm({ ...forecastForm, forecastEndDate: e.target.value })
+													}
+													className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+												/>
+											</div>
+										</div>
+
+										<div className="flex gap-3 pt-2">
+											<button
+												onClick={() => setIsForecastDialogOpen(false)}
+												className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-xl font-medium transition-all duration-200"
+											>
+												Cancel
+											</button>
+
+											<button
+												onClick={handleGenerateForecast}
+												disabled={isForecasting}
+												className={`flex-1 justify-center bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200 ${isForecasting ? "opacity-70 cursor-not-allowed" : ""
+													}`}
+											>
+												{isForecasting ? "Generating..." : "Generate"}
+											</button>
+										</div>
+									</DialogContent>
+								</Dialog>
+>>>>>>> d507c529f1c999fad761fd943131c92c48b914fb
 
                         {/* Basic Fields */}
                         <div className="space-y-3">
