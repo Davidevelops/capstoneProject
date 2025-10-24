@@ -1,12 +1,130 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, X, Save, Package } from "lucide-react";
-import { CreateDeliveryData, CreateDeliveryItem } from "@/lib/types";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, X, Save, Package, Search, ChevronDown } from "lucide-react";
+import {
+  CreateDeliveryData,
+  CreateDeliveryItem,
+  Supplier,
+  ProductGroup,
+  SingleProduct,
+} from "@/lib/types";
 import { createDelivery } from "@/lib/data/routes/delivery/delivery";
+import { getSuppliers } from "@/lib/data/routes/supplier/supplier";
+import { getProductList } from "@/lib/data/routes/product/product";
 
 interface CreateDeliveryProps {
   onDeliveryCreated: () => void;
+}
+
+interface SearchableDropdownProps {
+  options: { id: string; name: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  loading?: boolean;
+}
+
+function SearchableDropdown({
+  options,
+  value,
+  onChange,
+  placeholder,
+  loading = false,
+}: SearchableDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOption, setSelectedOption] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const filteredOptions = useMemo(() => {
+    return options.filter((option) =>
+      option.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [options, searchTerm]);
+
+  useEffect(() => {
+    const option = options.find((opt) => opt.id === value);
+    setSelectedOption(option || null);
+    if (option) {
+      setSearchTerm(option.name);
+    } else {
+      setSearchTerm("");
+    }
+  }, [value, options]);
+
+  const handleSelect = (option: { id: string; name: string }) => {
+    onChange(option.id);
+    setSearchTerm(option.name);
+    setIsOpen(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    if (!isOpen) setIsOpen(true);
+  };
+
+  const handleInputFocus = () => {
+    setIsOpen(true);
+    setSearchTerm("");
+  };
+
+  const handleInputBlur = (e: React.FocusEvent) => {
+    setTimeout(() => setIsOpen(false), 200);
+  };
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pr-10"
+          placeholder={placeholder}
+        />
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          {loading ? (
+            <div className="h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {loading ? (
+            <div className="p-4 text-center text-gray-500">Loading...</div>
+          ) : filteredOptions.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              No options found
+            </div>
+          ) : (
+            filteredOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors ${
+                  selectedOption?.id === option.id
+                    ? "bg-purple-100 text-purple-700"
+                    : ""
+                }`}
+                onClick={() => handleSelect(option)}
+              >
+                {option.name}
+                <div className="text-xs text-gray-500">ID: {option.id}</div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function CreateDelivery({
@@ -14,11 +132,65 @@ export default function CreateDelivery({
 }: CreateDeliveryProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [products, setProducts] = useState<SingleProduct[]>([]);
+  const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const [formData, setFormData] = useState<CreateDeliveryData>({
     items: [{ productId: "", quantity: 0 }],
     status: "completed",
     supplierId: "",
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchSuppliers();
+      fetchProducts();
+    }
+  }, [isOpen]);
+
+  const fetchSuppliers = async () => {
+    setLoadingSuppliers(true);
+    try {
+      const suppliersData = await getSuppliers();
+      setSuppliers(suppliersData || []);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      setSuppliers([]);
+    } finally {
+      setLoadingSuppliers(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const productGroups = await getProductList();
+
+      const allProducts =
+        productGroups?.flatMap((group) => group.products) || [];
+      setProducts(allProducts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const supplierOptions = useMemo(() => {
+    return suppliers.map((supplier) => ({
+      id: supplier.id,
+      name: supplier.name,
+    }));
+  }, [suppliers]);
+
+  const productOptions = useMemo(() => {
+    return products.map((product) => ({
+      id: product.id,
+      name: `${product.name} (Stock: ${product.stock})`,
+    }));
+  }, [products]);
 
   const addItem = () => {
     setFormData((prev) => ({
@@ -52,13 +224,17 @@ export default function CreateDelivery({
     setLoading(true);
 
     try {
-      // Filter out empty items
       const validItems = formData.items.filter(
         (item) => item.productId.trim() && item.quantity > 0
       );
 
       if (validItems.length === 0) {
         alert("Please add at least one valid item");
+        return;
+      }
+
+      if (!formData.supplierId) {
+        alert("Please select a supplier");
         return;
       }
 
@@ -69,7 +245,7 @@ export default function CreateDelivery({
 
       onDeliveryCreated();
       setIsOpen(false);
-      // Reset form
+
       setFormData({
         items: [{ productId: "", quantity: 0 }],
         status: "completed",
@@ -112,28 +288,25 @@ export default function CreateDelivery({
 
             <form onSubmit={handleSubmit} className="p-6">
               <div className="space-y-6">
-                {/* Supplier ID */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Package className="h-4 w-4 text-purple-600" />
-                    Supplier ID *
+                    Supplier *
                   </label>
-                  <input
-                    type="text"
+                  <SearchableDropdown
+                    options={supplierOptions}
                     value={formData.supplierId}
-                    onChange={(e) =>
+                    onChange={(supplierId) =>
                       setFormData((prev) => ({
                         ...prev,
-                        supplierId: e.target.value,
+                        supplierId,
                       }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="Enter supplier ID"
-                    required
+                    placeholder="Search suppliers by name..."
+                    loading={loadingSuppliers}
                   />
                 </div>
 
-                {/* Status */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Package className="h-4 w-4 text-purple-600" />
@@ -154,7 +327,6 @@ export default function CreateDelivery({
                   </select>
                 </div>
 
-                {/* Items */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -176,14 +348,14 @@ export default function CreateDelivery({
                       <div key={index} className="flex gap-3 items-start">
                         <div className="flex-1 grid grid-cols-2 gap-3">
                           <div>
-                            <input
-                              type="text"
+                            <SearchableDropdown
+                              options={productOptions}
                               value={item.productId}
-                              onChange={(e) =>
-                                updateItem(index, "productId", e.target.value)
+                              onChange={(productId) =>
+                                updateItem(index, "productId", productId)
                               }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                              placeholder="Product ID"
+                              placeholder="Search products..."
+                              loading={loadingProducts}
                             />
                           </div>
                           <div>
