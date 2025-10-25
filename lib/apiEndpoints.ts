@@ -1,5 +1,6 @@
 export class ApiEndpoints {
   private backendUrl: string;
+
   constructor() {
     const url = process.env.NEXT_PUBLIC_BACKEND_URL;
     if (!url) {

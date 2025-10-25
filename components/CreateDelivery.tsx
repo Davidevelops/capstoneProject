@@ -10,8 +10,7 @@ import {
 	SingleProduct,
 } from "@/lib/types";
 import { createDelivery } from "@/lib/data/routes/delivery/delivery";
-import { getSuppliers } from "@/lib/data/routes/supplier/supplier";
-import { getProductList } from "@/lib/data/routes/product/product";
+import { getSuppliedProducts, getSuppliers } from "@/lib/data/routes/supplier/supplier";
 
 interface CreateDeliveryProps {
 	onDeliveryCreated: () => void;
@@ -110,8 +109,8 @@ function SearchableDropdown({
 								key={option.id}
 								type="button"
 								className={`w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors ${selectedOption?.id === option.id
-										? "bg-purple-100 text-purple-700"
-										: ""
+									? "bg-purple-100 text-purple-700"
+									: ""
 									}`}
 								onClick={() => handleSelect(option)}
 							>
@@ -126,13 +125,23 @@ function SearchableDropdown({
 	);
 }
 
+export interface SuppliedProduct {
+	productId: string
+	groupId: string
+	groupName: string
+	productName: string
+	maxOrderable: number
+	minOrderable: number
+	isDefault: boolean
+}
+
 export default function CreateDelivery({
 	onDeliveryCreated,
 }: CreateDeliveryProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-	const [products, setProducts] = useState<SingleProduct[]>([]);
+	const [products, setProducts] = useState<SuppliedProduct[]>([]);
 	const [loadingSuppliers, setLoadingSuppliers] = useState(false);
 	const [loadingProducts, setLoadingProducts] = useState(false);
 	const [formData, setFormData] = useState<CreateDeliveryData>({
@@ -144,9 +153,14 @@ export default function CreateDelivery({
 	useEffect(() => {
 		if (isOpen) {
 			fetchSuppliers();
-			fetchProducts();
 		}
 	}, [isOpen]);
+
+	useEffect(() => {
+		if (formData.supplierId) {
+			fetchSuppliedProducts();
+		}
+	}, [formData.supplierId]);
 
 	const fetchSuppliers = async () => {
 		setLoadingSuppliers(true);
@@ -161,16 +175,12 @@ export default function CreateDelivery({
 		}
 	};
 
-	const fetchProducts = async () => {
+	const fetchSuppliedProducts = async () => {
 		setLoadingProducts(true);
 		try {
-			const productGroups = await getProductList();
-
-			const allProducts =
-				productGroups?.flatMap((group) => group.products) || [];
-			setProducts(allProducts);
+			const suppliedProduct = await getSuppliedProducts(formData.supplierId);
+			setProducts(suppliedProduct.products);
 		} catch (error) {
-			console.error("Error fetching products:", error);
 			setProducts([]);
 		} finally {
 			setLoadingProducts(false);
@@ -185,10 +195,14 @@ export default function CreateDelivery({
 	}, [suppliers]);
 
 	const productOptions = useMemo(() => {
-		return products.map((product) => ({
-			id: product.id,
-			name: `${product.name} (Stock: ${product.stock})`,
-		}));
+		if (products) {
+			return products.map((product) => ({
+				id: product.productId,
+				name: `${product.groupName} - (${product.productName})`,
+			}));
+		} else {
+			return []
+		}
 	}, [products]);
 
 	const addItem = () => {
@@ -348,11 +362,20 @@ export default function CreateDelivery({
 												<div className="flex-1 grid grid-cols-2 gap-3">
 													<div>
 														<SearchableDropdown
-															options={productOptions}
+															options={productOptions.filter(
+																(option) =>
+																	!formData.items.some(
+																		(selectedItem, i) => selectedItem.productId === option.id && i !== index
+																	)
+															)}
 															value={item.productId}
-															onChange={(productId) =>
-																updateItem(index, "productId", productId)
-															}
+															onChange={(productId) => {
+																const selectedProduct = products.find((p) => p.productId === productId);
+																updateItem(index, "productId", productId);
+																if (selectedProduct) {
+																	updateItem(index, "quantity", selectedProduct.minOrderable);
+																}
+															}}
 															placeholder="Search products..."
 															loading={loadingProducts}
 														/>
