@@ -41,6 +41,7 @@ import {
 import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { apiEndpoints } from "@/lib/apiEndpoints";
 
 interface Props {
 	productGroups: ProductGroup[];
@@ -61,8 +62,6 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 	const [addMode, setAddMode] = useState<"partial" | "full">("partial");
 	const [copiedId, setCopiedId] = useState<string | null>(null);
 
-	const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
-
 	const handleCopyId = async (id: string) => {
 		try {
 			await navigator.clipboard.writeText(id);
@@ -70,7 +69,6 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 			toast.success("ID copied to clipboard!");
 			setTimeout(() => setCopiedId(null), 2000);
 		} catch (err) {
-			console.error("Failed to copy ID: ", err);
 			toast.error("Failed to copy ID");
 		}
 	};
@@ -79,7 +77,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 		setIsLoading(true);
 		setError("");
 		try {
-			const response = await axios.delete(`${api_url}/${id}`);
+			await axios.delete(apiEndpoints.productGroup(id));
 			setError("");
 			await refreshProducts()
 		} catch (err) {
@@ -103,7 +101,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 		setError("");
 
 		try {
-			const response = await axios.patch(`${api_url}/${groupId}`, {
+			const response = await axios.patch(apiEndpoints.productGroup(groupId), {
 				name: productName,
 			});
 
@@ -112,7 +110,6 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 			setProductName("");
 			await refreshProducts()
 		} catch (err) {
-			console.error("An error while trying to update product: ", err);
 			if (axios.isAxiosError(err)) {
 				setError(err.response?.data?.error || "An unknown error occurred");
 			} else {
@@ -178,35 +175,20 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				};
 			}
 
-			const variantApiUrl = `${api_url}/${groupId}/products`;
+			const variantApiUrl = apiEndpoints.product(groupId, undefined)
 
-			console.log("=== SENDING VARIANT DATA ===");
-			console.log("API URL:", variantApiUrl);
-			console.log("Group ID:", groupId);
-			console.log("Base API URL:", api_url);
-			console.log("Request Data:", JSON.stringify(requestData, null, 2));
 
 			const response = await axios.post(variantApiUrl, requestData, {
 				headers: {
 					"Content-Type": "application/json",
 				},
 			});
-
-			console.log("Variant added successfully:", response.data);
-
 			setError("");
 			setAddVariantOpen(false);
 			resetVariantForm();
 			await refreshProducts()
 		} catch (error: any) {
-			console.error("=== FULL ERROR DETAILS ===");
-			console.error("Error object:", error);
-			console.error("Error response:", error.response?.data);
-			console.error("Error status:", error.response?.status);
-			console.error("Error message:", error.response?.data?.message);
-
 			let errorMessage = "An error occurred while trying to add variant";
-
 			if (error.response?.data?.message) {
 				errorMessage = error.response.data.message;
 			} else if (error.response?.status === 400) {

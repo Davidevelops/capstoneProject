@@ -11,6 +11,7 @@ import {
 	RefreshCw,
 	BarChart3,
 } from "lucide-react";
+import { apiEndpoints } from "@/lib/apiEndpoints";
 
 export default function ProductsPage() {
 	const [productGroups, setProductGroups] = useState<ProductGroup[] | null>(
@@ -22,13 +23,10 @@ export default function ProductsPage() {
 	const fetchProducts = async () => {
 		try {
 			setRefreshing(true);
-			let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
-			const response = await fetch(api_url);
+			const response = await fetch(apiEndpoints.productGroup());
 			const data = await response.json();
-			console.log()
 			setProductGroups(data.data);
 		} catch (error) {
-			console.error("Error while getting the products: ", error);
 			setProductGroups(null);
 		} finally {
 			setLoading(false);

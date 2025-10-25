@@ -1,7 +1,6 @@
 "use client";
 import axios from "axios";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Package, X, Loader2 } from "lucide-react";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiEndpoints } from "@/lib/apiEndpoints";
 
 type Props = {
 	refreshProducts: () => Promise<void>
@@ -22,9 +22,6 @@ export default function AddProduct({ refreshProducts }: Props) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [isOpen, setIsOpen] = useState(false);
-	const router = useRouter();
-
-	const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
 
 	const handleSubmitProduct = async () => {
 		if (!productName.trim()) {
@@ -36,22 +33,17 @@ export default function AddProduct({ refreshProducts }: Props) {
 		setError("");
 
 		try {
-			const response = await axios.post(api_url, {
+			await axios.post(apiEndpoints.productGroup(), {
 				name: productName.trim(),
 			});
-
-			console.log("Product added successfully:", response.data);
-
 			setProductName("");
 			setError("");
 			setIsOpen(false);
 			refreshProducts()
 		} catch (err) {
-			console.error("Error adding product:", err);
 			if (axios.isAxiosError(err)) {
 				setError(err.response?.data?.error || "An unknown error occurred");
 			} else {
-				console.log("not an axios error")
 				setError("An unexpected error occurred");
 			}
 		} finally {

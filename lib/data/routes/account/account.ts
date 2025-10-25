@@ -1,15 +1,12 @@
-import {
-  Account,
-  CreateAccountRequest,
-  Permission,
-  AssignPermissionsRequest,
-} from "@/lib/types";
+import { apiEndpoints } from "@/lib/apiEndpoints";
+import { Account, CreateAccountRequest, Permission } from "@/lib/types";
 import axios from "axios";
 
 export const getAccounts = async (): Promise<Account[] | null> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.get(`${api_url}?include=permissions`);
+    const response = await axios.get(
+      `${apiEndpoints.account()}?include=permissions`,
+    );
 
     return response.data.data;
   } catch (error) {
@@ -19,19 +16,14 @@ export const getAccounts = async (): Promise<Account[] | null> => {
 };
 export const createAccount = async (accountData: CreateAccountRequest) => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    console.log("Sending account data:", accountData);
-
-    const response = await axios.post(`${api_url}`, accountData, {
+    const response = await axios.post(apiEndpoints.account(), accountData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    console.log("Response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("Detailed error:", error.response?.data);
     throw error;
   }
 };
@@ -40,12 +32,9 @@ export const getAvailablePermissions = async (): Promise<
   Permission[] | null
 > => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.get(`${api_url}/permissions`);
-
+    const response = await axios.get(apiEndpoints.permissions());
     return response.data.data;
   } catch (error) {
-    console.error("Error while getting available permissions: ", error);
     return null;
   }
 };
@@ -54,11 +43,11 @@ export const addAccountPermissions = async (
   accountId: string,
 ): Promise<Permission[] | null> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.post(`${api_url}/${accountId}/permissions`);
+    const response = await axios.post(
+      apiEndpoints.accountPermissions(accountId),
+    );
     return response.data.data;
   } catch (error) {
-    console.error("Error while adding account permissions: ", error);
     return null;
   }
 };
@@ -68,32 +57,27 @@ export const updateAccount = async (
   accountData: { username: string; role: string },
 ) => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.patch(`${api_url}/${accountId}`, accountData, {
-      headers: {
-        "Content-Type": "application/json",
+    const response = await axios.patch(
+      apiEndpoints.account(accountId),
+      accountData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
-    console.log("Update response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("Error while updating account: ", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };
 
 export const deleteAccount = async (accountId: string) => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
-    const response = await axios.delete(`${api_url}/${accountId}`);
-
-    console.log("Delete response:", response.data);
+    const response = await axios.delete(apiEndpoints.account(accountId));
     return response.data;
   } catch (error: any) {
-    console.error("Error while deleting account: ", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };
@@ -103,9 +87,8 @@ export const changePassword = async (
   passwordData: { password: string },
 ) => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_ACCOUNT_API as string;
     const response = await axios.put(
-      `${api_url}/${accountId}/password`,
+      apiEndpoints.accountPassword(accountId),
       passwordData,
       {
         headers: {
@@ -113,12 +96,8 @@ export const changePassword = async (
         },
       },
     );
-
-    console.log("Password change response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error("Error while changing password: ", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };

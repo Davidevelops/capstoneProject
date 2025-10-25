@@ -46,13 +46,14 @@ import {
 	XAxis,
 	YAxis,
 	Tooltip,
-	ResponsiveContainer,
-	ReferenceArea,
 } from "recharts";
+import { apiEndpoints } from "@/lib/apiEndpoints";
 
 interface Props {
 	product: SingleProduct;
 }
+
+
 
 export default function ProductDetails({ product }: Props) {
 	const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -90,7 +91,6 @@ export default function ProductDetails({ product }: Props) {
 		setting: defaultSettings,
 	});
 
-	const api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
 
 	const [isForecastDialogOpen, setIsForecastDialogOpen] = useState(false);
 	const [forecastForm, setForecastForm] = useState({
@@ -114,11 +114,11 @@ export default function ProductDetails({ product }: Props) {
 		const fetchData = async () => {
 			try {
 				const [salesRes, forecastRes] = await Promise.all([
-					axios.get(`${api_url}/${product.groupId}/products/${product.id}/sales?summed=true`, {
+					axios.get(`${apiEndpoints.productSales(product.groupId, product.id, undefined)}?summed=true`, {
 						withCredentials: true,
 					}),
 					axios.get(
-						`${api_url}/${product.groupId}/products/${product.id}/forecasts?latest=true&&include=entries`,
+						`${apiEndpoints.forecast(product.groupId, product.id, undefined)}?latest=true&&include=entries`,
 						{ withCredentials: true }
 					),
 				]);
@@ -162,9 +162,9 @@ export default function ProductDetails({ product }: Props) {
 				const salesChange =
 					prev7.length > 0
 						? Math.round(
-							((last7.reduce((s, x) => s + x.quantity, 0) -
-								prev7.reduce((s, x) => s + x.quantity, 0)) /
-								prev7.reduce((s, x) => s + x.quantity, 0)) *
+							((last7.reduce((s: any, x: any) => s + x.quantity, 0) -
+								prev7.reduce((s: any, x: any) => s + x.quantity, 0)) /
+								prev7.reduce((s: any, x: any) => s + x.quantity, 0)) *
 							100
 						)
 						: 0;
@@ -186,11 +186,11 @@ export default function ProductDetails({ product }: Props) {
 		};
 
 		fetchData();
-	}, [product.id, product.groupId, api_url]);
+	}, [product.id, product.groupId]);
 
 	const handleDeleteProduct = async (id: string, groupId: string) => {
 		try {
-			await axios.delete(`${api_url}/${groupId}/products/${id}`, { withCredentials: true });
+			await axios.delete(apiEndpoints.product(groupId, id), { withCredentials: true });
 			router.push("/dashboard/products");
 			setIsDeleteDialogOpen(false);
 		} catch (error) {
@@ -208,7 +208,7 @@ export default function ProductDetails({ product }: Props) {
 				forecastEndDate: forecastForm.forecastEndDate,
 			};
 			await axios.post(
-				`${api_url}/${product.groupId}/products/${product.id}/forecasts`,
+				apiEndpoints.forecast(product.groupId, product.id, undefined),
 				payload,
 			);
 			setIsForecastDialogOpen(false);
@@ -253,9 +253,12 @@ export default function ProductDetails({ product }: Props) {
 				setting: formData.setting,
 			};
 
-			await axios.patch(`${api_url}/${groupId}/products/${id}`, updateData, {
-				withCredentials: true,
-			});
+			await axios.patch(
+				apiEndpoints.product(groupId, id),
+				updateData,
+				{
+					withCredentials: true,
+				});
 
 			router.refresh();
 			setIsEditing(false);

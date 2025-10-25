@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import axios from "axios";
-import Image from "next/image";
+import { apiEndpoints } from "@/lib/apiEndpoints";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LogIn() {
 	const [username, setUsername] = useState("");
@@ -18,13 +19,14 @@ export default function LogIn() {
 
 		try {
 			const response = await axios.post(
-				`${process.env.NEXT_PUBLIC_BASE_API}/auth/login`,
+				apiEndpoints.login()
+				,
 				{
 					username,
 					password,
 				},
 				{
-					withCredentials: true, // ✅ important for session cookies
+					withCredentials: true,
 				},
 			);
 

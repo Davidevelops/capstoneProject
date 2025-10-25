@@ -1,4 +1,5 @@
 import ProductDetails from "@/components/productDetails";
+import { apiEndpoints } from "@/lib/apiEndpoints";
 import { SingleProduct } from "@/lib/types";
 import axios from "axios";
 
@@ -14,17 +15,9 @@ export default async function page({ params }: pageProps) {
 
 	const getProductDetails = async (): Promise<SingleProduct | null> => {
 		try {
-			let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
-			let response = await axios.get(
-				`${api_url}/${groupId}/products/${productId}`
-			);
-
+			let response = await axios.get(apiEndpoints.product(groupId, productId));
 			return response.data;
 		} catch (error) {
-			console.log(
-				"An error occured while trying to fetch product details: ",
-				error
-			);
 			return null;
 		}
 	};

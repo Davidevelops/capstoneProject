@@ -1,83 +1,86 @@
+import { apiEndpoints } from "@/lib/apiEndpoints";
 import { ProductGroup, SalesResponse, Sale } from "@/lib/types";
 import axios from "axios";
 
 export const getProductList = async (): Promise<ProductGroup[] | null> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
-    const response = await axios.get(api_url);
+    const response = await axios.get(apiEndpoints.productGroup());
 
     return response.data.data;
   } catch (error) {
-    console.error("Error while getting the products: ", error);
     return null;
   }
 };
 
-export const getProductSales = async (groupId: string, productId: string): Promise<SalesResponse> => {
+export const getProductSales = async (
+  groupId: string,
+  productId: string,
+): Promise<SalesResponse> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
     const response = await axios.get(
-      `${api_url}/${groupId}/products/${productId}/sales`
+      apiEndpoints.productSales(groupId, productId, undefined),
     );
 
     return response.data;
   } catch (error) {
-    console.error("Error while getting product sales: ", error);
     throw error;
   }
 };
 
-export const addSale = async (groupId: string, productId: string, saleData: { date: string; quantity: number; status: string }): Promise<Sale> => {
+export const addSale = async (
+  groupId: string,
+  productId: string,
+  saleData: { date: string; quantity: number; status: string },
+): Promise<Sale> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
     const response = await axios.post(
-      `${api_url}/${groupId}/products/${productId}/sales`,
+      apiEndpoints.productSales(groupId, productId, undefined),
       saleData,
       {
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     return response.data;
   } catch (error: any) {
-    console.error("Error while adding sale: ", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };
 
-export const updateSale = async (groupId: string, productId: string, saleId: string, saleData: { date: string; quantity: number; status: string }): Promise<Sale> => {
+export const updateSale = async (
+  groupId: string,
+  productId: string,
+  saleId: string,
+  saleData: { date: string; quantity: number; status: string },
+): Promise<Sale> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
     const response = await axios.patch(
-      `${api_url}/${groupId}/products/${productId}/sales/${saleId}`,
+      apiEndpoints.productSales(groupId, productId, saleId),
       saleData,
       {
         headers: {
-          'Content-Type': 'application/json',
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     return response.data;
   } catch (error: any) {
-    console.error("Error while updating sale: ", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };
 
-export const deleteSale = async (groupId: string, productId: string, saleId: string): Promise<void> => {
+export const deleteSale = async (
+  groupId: string,
+  productId: string,
+  saleId: string,
+): Promise<void> => {
   try {
-    let api_url = process.env.NEXT_PUBLIC_PRODUCT_API as string;
-    await axios.delete(
-      `${api_url}/${groupId}/products/${productId}/sales/${saleId}`
-    );
+    await axios.delete(apiEndpoints.productSales(groupId, productId, saleId));
   } catch (error: any) {
-    console.error("Error while deleting sale: ", error);
-    console.error("Error details:", error.response?.data);
     throw error;
   }
 };
+
