@@ -1,48 +1,48 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { ProductGroup } from "@/lib/types";
-import ProductList from "@/components/productList";
-import AddProduct from "@/components/addProduct";
+import { useState, useEffect } from "react"
+import { ProductGroup } from "@/lib/types"
+import ProductList from "@/components/productList"
+import AddProduct from "@/components/addProduct"
 import {
 	Package,
 	TrendingUp,
 	AlertCircle,
 	RefreshCw,
 	BarChart3,
-} from "lucide-react";
-import { apiEndpoints } from "@/lib/apiEndpoints";
+} from "lucide-react"
+import { apiEndpoints } from "@/lib/apiEndpoints"
 
 export default function ProductsPage() {
 	const [productGroups, setProductGroups] = useState<ProductGroup[] | null>(
-		null
-	);
-	const [loading, setLoading] = useState(true);
-	const [refreshing, setRefreshing] = useState(false);
+		null,
+	)
+	const [loading, setLoading] = useState(true)
+	const [refreshing, setRefreshing] = useState(false)
 
 	const fetchProducts = async () => {
 		try {
-			setRefreshing(true);
-			const response = await fetch(apiEndpoints.productGroup());
-			const data = await response.json();
-			setProductGroups(data.data);
+			setRefreshing(true)
+			const response = await fetch(apiEndpoints.productGroup())
+			const data = await response.json()
+			setProductGroups(data.data)
 		} catch (error) {
-			setProductGroups(null);
+			setProductGroups(null)
 		} finally {
-			setLoading(false);
-			setRefreshing(false);
+			setLoading(false)
+			setRefreshing(false)
 		}
-	};
+	}
 
 	useEffect(() => {
-		fetchProducts();
-	}, []);
+		fetchProducts()
+	}, [])
 
 	const totalProducts =
 		productGroups?.reduce(
 			(total, group) => total + (group.products?.length || 0),
-			0
-		) || 0;
+			0,
+		) || 0
 
 	if (loading) {
 		return (
@@ -105,7 +105,7 @@ export default function ProductsPage() {
 					</div>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -121,7 +121,7 @@ export default function ProductsPage() {
 						</div>
 						<div>
 							<h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 bg-clip-text text-transparent">
-								Product Inventory
+								Product Groups
 							</h1>
 							<div className="flex items-center gap-4 mt-3">
 								<p className="text-gray-600 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-gray-100 shadow-xs">
@@ -259,10 +259,11 @@ export default function ProductsPage() {
 									<Package className="h-10 w-10 text-purple-400 mx-auto" />
 								</div>
 								<h3 className="text-2xl font-bold text-gray-800 mb-3">
-									No Products Found
+									No Product Groups Found
 								</h3>
 								<p className="text-gray-600 mb-8">
-									Start building your inventory by adding your first product.
+									Start building your inventory by adding your first product
+									group.
 								</p>
 								<AddProduct refreshProducts={fetchProducts} />
 							</div>
@@ -278,5 +279,5 @@ export default function ProductsPage() {
 				</div>
 			</div>
 		</div>
-	);
+	)
 }

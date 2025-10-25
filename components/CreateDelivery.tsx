@@ -1,27 +1,30 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useMemo } from "react";
-import { Plus, X, Save, Package, Search, ChevronDown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react"
+import { Plus, X, Save, Package, Search, ChevronDown } from "lucide-react"
 import {
 	CreateDeliveryData,
 	CreateDeliveryItem,
 	Supplier,
 	ProductGroup,
 	SingleProduct,
-} from "@/lib/types";
-import { createDelivery } from "@/lib/data/routes/delivery/delivery";
-import { getSuppliedProducts, getSuppliers } from "@/lib/data/routes/supplier/supplier";
+} from "@/lib/types"
+import { createDelivery } from "@/lib/data/routes/delivery/delivery"
+import {
+	getSuppliedProducts,
+	getSuppliers,
+} from "@/lib/data/routes/supplier/supplier"
 
 interface CreateDeliveryProps {
-	onDeliveryCreated: () => void;
+	onDeliveryCreated: () => void
 }
 
 interface SearchableDropdownProps {
-	options: { id: string; name: string }[];
-	value: string;
-	onChange: (value: string) => void;
-	placeholder: string;
-	loading?: boolean;
+	options: { id: string; name: string }[]
+	value: string
+	onChange: (value: string) => void
+	placeholder: string
+	loading?: boolean
 }
 
 function SearchableDropdown({
@@ -31,48 +34,48 @@ function SearchableDropdown({
 	placeholder,
 	loading = false,
 }: SearchableDropdownProps) {
-	const [isOpen, setIsOpen] = useState(false);
-	const [searchTerm, setSearchTerm] = useState("");
+	const [isOpen, setIsOpen] = useState(false)
+	const [searchTerm, setSearchTerm] = useState("")
 	const [selectedOption, setSelectedOption] = useState<{
-		id: string;
-		name: string;
-	} | null>(null);
+		id: string
+		name: string
+	} | null>(null)
 
 	const filteredOptions = useMemo(() => {
 		return options.filter((option) =>
-			option.name.toLowerCase().includes(searchTerm.toLowerCase())
-		);
-	}, [options, searchTerm]);
+			option.name.toLowerCase().includes(searchTerm.toLowerCase()),
+		)
+	}, [options, searchTerm])
 
 	useEffect(() => {
-		const option = options.find((opt) => opt.id === value);
-		setSelectedOption(option || null);
+		const option = options.find((opt) => opt.id === value)
+		setSelectedOption(option || null)
 		if (option) {
-			setSearchTerm(option.name);
+			setSearchTerm(option.name)
 		} else {
-			setSearchTerm("");
+			setSearchTerm("")
 		}
-	}, [value, options]);
+	}, [value, options])
 
 	const handleSelect = (option: { id: string; name: string }) => {
-		onChange(option.id);
-		setSearchTerm(option.name);
-		setIsOpen(false);
-	};
+		onChange(option.id)
+		setSearchTerm(option.name)
+		setIsOpen(false)
+	}
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setSearchTerm(e.target.value);
-		if (!isOpen) setIsOpen(true);
-	};
+		setSearchTerm(e.target.value)
+		if (!isOpen) setIsOpen(true)
+	}
 
 	const handleInputFocus = () => {
-		setIsOpen(true);
-		setSearchTerm("");
-	};
+		setIsOpen(true)
+		setSearchTerm("")
+	}
 
 	const handleInputBlur = (e: React.FocusEvent) => {
-		setTimeout(() => setIsOpen(false), 200);
-	};
+		setTimeout(() => setIsOpen(false), 200)
+	}
 
 	return (
 		<div className="relative">
@@ -108,10 +111,11 @@ function SearchableDropdown({
 							<button
 								key={option.id}
 								type="button"
-								className={`w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors ${selectedOption?.id === option.id
-									? "bg-purple-100 text-purple-700"
-									: ""
-									}`}
+								className={`w-full text-left px-4 py-2 hover:bg-purple-50 transition-colors ${
+									selectedOption?.id === option.id
+										? "bg-purple-100 text-purple-700"
+										: ""
+								}`}
 								onClick={() => handleSelect(option)}
 							>
 								{option.name}
@@ -122,7 +126,7 @@ function SearchableDropdown({
 				</div>
 			)}
 		</div>
-	);
+	)
 }
 
 export interface SuppliedProduct {
@@ -138,139 +142,139 @@ export interface SuppliedProduct {
 export default function CreateDelivery({
 	onDeliveryCreated,
 }: CreateDeliveryProps) {
-	const [isOpen, setIsOpen] = useState(false);
-	const [loading, setLoading] = useState(false);
-	const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-	const [products, setProducts] = useState<SuppliedProduct[]>([]);
-	const [loadingSuppliers, setLoadingSuppliers] = useState(false);
-	const [loadingProducts, setLoadingProducts] = useState(false);
+	const [isOpen, setIsOpen] = useState(false)
+	const [loading, setLoading] = useState(false)
+	const [suppliers, setSuppliers] = useState<Supplier[]>([])
+	const [products, setProducts] = useState<SuppliedProduct[]>([])
+	const [loadingSuppliers, setLoadingSuppliers] = useState(false)
+	const [loadingProducts, setLoadingProducts] = useState(false)
 	const [formData, setFormData] = useState<CreateDeliveryData>({
 		items: [{ productId: "", quantity: 0 }],
 		status: "completed",
 		supplierId: "",
-	});
+	})
 
 	useEffect(() => {
 		if (isOpen) {
-			fetchSuppliers();
+			fetchSuppliers()
 		}
-	}, [isOpen]);
+	}, [isOpen])
 
 	useEffect(() => {
 		if (formData.supplierId) {
-			fetchSuppliedProducts();
+			fetchSuppliedProducts()
 		}
-	}, [formData.supplierId]);
+	}, [formData.supplierId])
 
 	const fetchSuppliers = async () => {
-		setLoadingSuppliers(true);
+		setLoadingSuppliers(true)
 		try {
-			const suppliersData = await getSuppliers();
-			setSuppliers(suppliersData || []);
+			const suppliersData = await getSuppliers()
+			setSuppliers(suppliersData || [])
 		} catch (error) {
-			console.error("Error fetching suppliers:", error);
-			setSuppliers([]);
+			console.error("Error fetching suppliers:", error)
+			setSuppliers([])
 		} finally {
-			setLoadingSuppliers(false);
+			setLoadingSuppliers(false)
 		}
-	};
+	}
 
 	const fetchSuppliedProducts = async () => {
-		setLoadingProducts(true);
+		setLoadingProducts(true)
 		try {
-			const suppliedProduct = await getSuppliedProducts(formData.supplierId);
-			setProducts(suppliedProduct.products);
+			const suppliedProduct = await getSuppliedProducts(formData.supplierId)
+			setProducts(suppliedProduct.products)
 		} catch (error) {
-			setProducts([]);
+			setProducts([])
 		} finally {
-			setLoadingProducts(false);
+			setLoadingProducts(false)
 		}
-	};
+	}
 
 	const supplierOptions = useMemo(() => {
 		return suppliers.map((supplier) => ({
 			id: supplier.id,
 			name: supplier.name,
-		}));
-	}, [suppliers]);
+		}))
+	}, [suppliers])
 
 	const productOptions = useMemo(() => {
 		if (products) {
 			return products.map((product) => ({
 				id: product.productId,
 				name: `${product.groupName} - (${product.productName})`,
-			}));
+			}))
 		} else {
 			return []
 		}
-	}, [products]);
+	}, [products])
 
 	const addItem = () => {
 		setFormData((prev) => ({
 			...prev,
 			items: [...prev.items, { productId: "", quantity: 0 }],
-		}));
-	};
+		}))
+	}
 
 	const removeItem = (index: number) => {
 		setFormData((prev) => ({
 			...prev,
 			items: prev.items.filter((_, i) => i !== index),
-		}));
-	};
+		}))
+	}
 
 	const updateItem = (
 		index: number,
 		field: keyof CreateDeliveryItem,
-		value: string | number
+		value: string | number,
 	) => {
 		setFormData((prev) => ({
 			...prev,
 			items: prev.items.map((item, i) =>
-				i === index ? { ...item, [field]: value } : item
+				i === index ? { ...item, [field]: value } : item,
 			),
-		}));
-	};
+		}))
+	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setLoading(true);
+		e.preventDefault()
+		setLoading(true)
 
 		try {
 			const validItems = formData.items.filter(
-				(item) => item.productId.trim() && item.quantity > 0
-			);
+				(item) => item.productId.trim() && item.quantity > 0,
+			)
 
 			if (validItems.length === 0) {
-				alert("Please add at least one valid item");
-				return;
+				alert("Please add at least one valid item")
+				return
 			}
 
 			if (!formData.supplierId) {
-				alert("Please select a supplier");
-				return;
+				alert("Please select a supplier")
+				return
 			}
 
 			await createDelivery({
 				...formData,
 				items: validItems,
-			});
+			})
 
-			onDeliveryCreated();
-			setIsOpen(false);
+			onDeliveryCreated()
+			setIsOpen(false)
 
 			setFormData({
 				items: [{ productId: "", quantity: 0 }],
 				status: "completed",
 				supplierId: "",
-			});
+			})
 		} catch (error) {
-			console.error("Error creating delivery:", error);
-			alert("Failed to create delivery. Please try again.");
+			console.error("Error creating delivery:", error)
+			alert("Failed to create delivery. Please try again.")
 		} finally {
-			setLoading(false);
+			setLoading(false)
 		}
-	};
+	}
 
 	return (
 		<>
@@ -365,15 +369,23 @@ export default function CreateDelivery({
 															options={productOptions.filter(
 																(option) =>
 																	!formData.items.some(
-																		(selectedItem, i) => selectedItem.productId === option.id && i !== index
-																	)
+																		(selectedItem, i) =>
+																			selectedItem.productId === option.id &&
+																			i !== index,
+																	),
 															)}
 															value={item.productId}
 															onChange={(productId) => {
-																const selectedProduct = products.find((p) => p.productId === productId);
-																updateItem(index, "productId", productId);
+																const selectedProduct = products.find(
+																	(p) => p.productId === productId,
+																)
+																updateItem(index, "productId", productId)
 																if (selectedProduct) {
-																	updateItem(index, "quantity", selectedProduct.minOrderable);
+																	updateItem(
+																		index,
+																		"quantity",
+																		selectedProduct.minOrderable,
+																	)
 																}
 															}}
 															placeholder="Search products..."
@@ -388,7 +400,7 @@ export default function CreateDelivery({
 																updateItem(
 																	index,
 																	"quantity",
-																	parseInt(e.target.value) || 0
+																	parseInt(e.target.value) || 0,
 																)
 															}
 															className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -436,5 +448,5 @@ export default function CreateDelivery({
 				</div>
 			)}
 		</>
-	);
+	)
 }

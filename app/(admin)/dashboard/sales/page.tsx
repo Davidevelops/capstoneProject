@@ -1,9 +1,9 @@
-import React from "react";
+import SalesList from "@/components/Sales"
 
-export default function page() {
-  return (
-    <div>
-      <h1>Sales page</h1>
-    </div>
-  );
+export default function SalesPage() {
+	return (
+		<div className="container mx-auto px-4 py-8">
+			<SalesList />
+		</div>
+	)
 }
