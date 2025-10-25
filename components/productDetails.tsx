@@ -61,9 +61,10 @@ export default function ProductDetails({ product }: Props) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const [copyFeedback, setCopyFeedback] = useState(false);
-	const [salesData, setSalesData] = useState<{ date: string, dateFull: string; quantity: number }[]>([]);
+	const [salesData, setSalesData] = useState<
+		{ date: string; dateFull: string; quantity: number }[]
+	>([]);
 	const [loading, setLoading] = useState(true);
-
 
 	const [forecastData, setForecastData] = useState<
 		{ date: string; yhat: number; yhatLower: number; yhatUpper: number }[]
@@ -96,7 +97,9 @@ export default function ProductDetails({ product }: Props) {
 	const [forecastForm, setForecastForm] = useState({
 		dataDepth: 100,
 		forecastStartDate: new Date().toISOString().split("T")[0],
-		forecastEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+		forecastEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+			.toISOString()
+			.split("T")[0],
 	});
 	const [isForecasting, setIsForecasting] = useState(false);
 
@@ -110,6 +113,7 @@ export default function ProductDetails({ product }: Props) {
 		}
 	}, [loading, salesData, forecastData]);
 
+
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
@@ -122,18 +126,18 @@ export default function ProductDetails({ product }: Props) {
 						{ withCredentials: true }
 					),
 				]);
-
 				/** --- Process sales --- **/
 				const rawSales = salesRes.data.data || [];
 				const sortedSales = rawSales
 					.sort(
-						(a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
+						(a: any, b: any) =>
+							new Date(a.date).getTime() - new Date(b.date).getTime()
 					)
 					.map((sale: any) => {
 						const d = new Date(sale.date);
 						return {
 							date: d.toISOString(), // for X-axis + sorting
-							dateFull: sale.date,   // keep raw date for info display
+							dateFull: sale.date, // keep raw date for info display
 							quantity: sale.quantity,
 						};
 					});
@@ -142,7 +146,10 @@ export default function ProductDetails({ product }: Props) {
 				/** --- Process forecasts --- **/
 				const forecastRaw = forecastRes.data?.data?.[0]?.entries || [];
 				const formattedForecasts = forecastRaw
-					.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+					.sort(
+						(a: any, b: any) =>
+							new Date(a.date).getTime() - new Date(b.date).getTime()
+					)
 					.map((f: any) => {
 						const d = new Date(f.date);
 						return {
@@ -168,16 +175,21 @@ export default function ProductDetails({ product }: Props) {
 							100
 						)
 						: 0;
-
 				setMetrics({
 					totalSales,
 					salesChange,
-					forecastAccuracy: Math.min(100, Math.max(75, 90 + Math.random() * 10)),
+					forecastAccuracy: Math.min(
+						100,
+						Math.max(75, 90 + Math.random() * 10)
+					),
 					stockStatus:
-						totalSales > 1000 ? "healthy" : totalSales > 300 ? "warning" : "critical",
+						totalSales > 1000
+							? "healthy"
+							: totalSales > 300
+								? "warning"
+								: "critical",
 					stockChange: salesChange,
 				});
-
 			} catch (err) {
 				console.error("Error fetching sales/forecasts:", err);
 			} finally {
@@ -187,6 +199,7 @@ export default function ProductDetails({ product }: Props) {
 
 		fetchData();
 	}, [product.id, product.groupId]);
+
 
 	const handleDeleteProduct = async (id: string, groupId: string) => {
 		try {
@@ -213,15 +226,16 @@ export default function ProductDetails({ product }: Props) {
 			);
 			setIsForecastDialogOpen(false);
 			router.refresh();
-		} catch (error) {
-			console.error("Error generating forecast:", error);
-			alert("Failed to generate forecast. Check console for details.");
 		} finally {
 			setIsForecasting(false);
 		}
 	};
 
-	const handleInputChange = (field: string, value: any, nestedField?: string) => {
+	const handleInputChange = (
+		field: string,
+		value: any,
+		nestedField?: string
+	) => {
 		if (nestedField) {
 			setFormData((prev) => ({
 				...prev,
@@ -253,12 +267,9 @@ export default function ProductDetails({ product }: Props) {
 				setting: formData.setting,
 			};
 
-			await axios.patch(
-				apiEndpoints.product(groupId, id),
-				updateData,
-				{
-					withCredentials: true,
-				});
+			await axios.patch(apiEndpoints.product(groupId, id), updateData, {
+				withCredentials: true,
+			});
 
 			router.refresh();
 			setIsEditing(false);
@@ -292,7 +303,6 @@ export default function ProductDetails({ product }: Props) {
 		}
 	};
 
-	// Combine and align sales + forecast into a single time series
 	const combinedData = [
 		...salesData.map((s) => ({
 			date: s.date,
@@ -322,7 +332,9 @@ export default function ProductDetails({ product }: Props) {
 									<PackageCheck className="h-8 w-8 text-white" />
 								</div>
 								<div>
-									<h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
+									<h1 className="text-3xl font-bold text-gray-800">
+										{product.name}
+									</h1>
 									<p className="text-gray-600 mt-1 flex items-center gap-2">
 										<Calendar className="h-4 w-4" />
 										Last updated:{" "}
@@ -333,7 +345,10 @@ export default function ProductDetails({ product }: Props) {
 
 							<div className="flex items-center gap-3">
 								{/* Forecast Button */}
-								<Dialog open={isForecastDialogOpen} onOpenChange={setIsForecastDialogOpen}>
+								<Dialog
+									open={isForecastDialogOpen}
+									onOpenChange={setIsForecastDialogOpen}
+								>
 									<DialogTrigger asChild>
 										<button className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 shadow-sm">
 											<ChartLine className="h-5 w-5" />
@@ -348,7 +363,8 @@ export default function ProductDetails({ product }: Props) {
 												Generate Forecast
 											</DialogTitle>
 											<DialogDescription className="text-gray-600 text-sm">
-												Configure the forecast parameters below before generating.
+												Configure the forecast parameters below before
+												generating.
 											</DialogDescription>
 										</DialogHeader>
 
@@ -361,7 +377,10 @@ export default function ProductDetails({ product }: Props) {
 													type="number"
 													value={forecastForm.dataDepth}
 													onChange={(e) =>
-														setForecastForm({ ...forecastForm, dataDepth: parseInt(e.target.value) })
+														setForecastForm({
+															...forecastForm,
+															dataDepth: parseInt(e.target.value),
+														})
 													}
 													className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
 												/>
@@ -375,7 +394,10 @@ export default function ProductDetails({ product }: Props) {
 													type="date"
 													value={forecastForm.forecastStartDate}
 													onChange={(e) =>
-														setForecastForm({ ...forecastForm, forecastStartDate: e.target.value })
+														setForecastForm({
+															...forecastForm,
+															forecastStartDate: e.target.value,
+														})
 													}
 													className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
 												/>
@@ -389,7 +411,10 @@ export default function ProductDetails({ product }: Props) {
 													type="date"
 													value={forecastForm.forecastEndDate}
 													onChange={(e) =>
-														setForecastForm({ ...forecastForm, forecastEndDate: e.target.value })
+														setForecastForm({
+															...forecastForm,
+															forecastEndDate: e.target.value,
+														})
 													}
 													className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
 												/>
@@ -455,7 +480,8 @@ export default function ProductDetails({ product }: Props) {
 														className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
 													/>
 													<p className="text-xs text-gray-400">
-														This ID is unique to this product and cannot be changed
+														This ID is unique to this product and cannot be
+														changed
 													</p>
 												</div>
 
@@ -480,7 +506,10 @@ export default function ProductDetails({ product }: Props) {
 															type="number"
 															value={formData.stock}
 															onChange={(e) =>
-																handleInputChange("stock", parseInt(e.target.value))
+																handleInputChange(
+																	"stock",
+																	parseInt(e.target.value)
+																)
 															}
 															className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
 															placeholder="Stock"
@@ -518,7 +547,10 @@ export default function ProductDetails({ product }: Props) {
 								</AlertDialog>
 
 								{/* Delete Button */}
-								<Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+								<Dialog
+									open={isDeleteDialogOpen}
+									onOpenChange={setIsDeleteDialogOpen}
+								>
 									<DialogTrigger asChild>
 										<button className="flex items-center gap-2 text-red-700 border border-red-700 hover:bg-red-50 px-4 py-2 rounded-xl font-semibold transition-all duration-200 shadow-sm">
 											<Trash2 className="h-5 w-5" />
@@ -537,7 +569,8 @@ export default function ProductDetails({ product }: Props) {
 											</div>
 											<DialogDescription className="text-gray-600 text-base">
 												Are you sure you want to delete{" "}
-												<strong>"{product.name}"</strong>? This action cannot be undone.
+												<strong>"{product.name}"</strong>? This action cannot be
+												undone.
 											</DialogDescription>
 										</DialogHeader>
 
@@ -571,7 +604,9 @@ export default function ProductDetails({ product }: Props) {
 						<div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 hover:shadow-md transition-all duration-300">
 							<div className="flex justify-between items-start mb-4">
 								<div>
-									<p className="text-gray-500 text-sm font-medium mb-1">Total Sales</p>
+									<p className="text-gray-500 text-sm font-medium mb-1">
+										Total Sales
+									</p>
 									<h2 className="text-2xl font-bold text-gray-800">
 										{metrics.totalSales.toLocaleString()}
 									</h2>
@@ -621,7 +656,9 @@ export default function ProductDetails({ product }: Props) {
 						<div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 hover:shadow-md transition-all duration-300">
 							<div className="flex justify-between items-start mb-4">
 								<div>
-									<p className="text-gray-500 text-sm font-medium mb-1">Stock Status</p>
+									<p className="text-gray-500 text-sm font-medium mb-1">
+										Stock Status
+									</p>
 									<h2
 										className={`text-2xl font-bold capitalize flex items-center gap-2 ${getStockStatusColor(
 											metrics.stockStatus
@@ -645,7 +682,9 @@ export default function ProductDetails({ product }: Props) {
 								<div className="bg-gradient-to-r from-purple-500 to-purple-600 p-2 rounded-lg">
 									<BarChart3 className="h-5 w-5 text-white" />
 								</div>
-								<h3 className="text-xl font-bold text-gray-800">Sales Performance</h3>
+								<h3 className="text-xl font-bold text-gray-800">
+									Sales Performance
+								</h3>
 							</div>
 
 							{/* Chart Info Summary */}
@@ -653,10 +692,13 @@ export default function ProductDetails({ product }: Props) {
 								<div className="text-sm text-gray-600 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-100">
 									Showing data from{" "}
 									<span className="font-semibold">
-										{new Date(salesData[0]?.dateFull).toLocaleDateString("en-US", {
-											year: "numeric",
-											month: "short",
-										})}
+										{new Date(salesData[0]?.dateFull).toLocaleDateString(
+											"en-US",
+											{
+												year: "numeric",
+												month: "short",
+											}
+										)}
 									</span>{" "}
 									to{" "}
 									<span className="font-semibold">
@@ -674,12 +716,15 @@ export default function ProductDetails({ product }: Props) {
 						{loading ? (
 							<p className="text-gray-500">Loading sales data...</p>
 						) : salesData.length === 0 ? (
-							<p className="text-gray-500">No sales data available for this product.</p>
+							<p className="text-gray-500">
+								No sales data available for this product.
+							</p>
 						) : (
 							<div ref={chartContainerRef} className="h-96 overflow-x-auto">
 								<div
 									style={{
-										width: `${Math.max(salesData.length, forecastData.length) * 40}px`,
+										width: `${Math.max(salesData.length, forecastData.length) * 40
+											}px`,
 										height: "100%",
 									}}
 								>
@@ -731,7 +776,6 @@ export default function ProductDetails({ product }: Props) {
 											dot={false}
 											name="Forecast"
 										/>
-
 									</LineChart>
 								</div>
 							</div>

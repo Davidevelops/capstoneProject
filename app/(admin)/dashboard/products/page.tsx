@@ -143,17 +143,6 @@ export default function ProductsPage() {
 					</div>
 
 					<div className="flex items-center gap-3">
-						<button
-							onClick={fetchProducts}
-							disabled={refreshing}
-							className="flex items-center gap-2 bg-white/80 backdrop-blur-sm hover:bg-white border border-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-md hover:border-gray-300 disabled:opacity-50"
-						>
-							<RefreshCw
-								className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-							/>
-							Refresh
-						</button>
-
 						<AddProduct refreshProducts={fetchProducts} />
 					</div>
 				</div>
@@ -280,7 +269,10 @@ export default function ProductsPage() {
 						</div>
 					) : (
 						<div className="p-1">
-							<ProductList productGroups={productGroups} refreshProducts={fetchProducts} />
+							<ProductList
+								productGroups={productGroups}
+								refreshProducts={fetchProducts}
+							/>
 						</div>
 					)}
 				</div>
