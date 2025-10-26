@@ -192,11 +192,12 @@ export const isSaleStatus = (status: string): status is SaleStatus => {
 
 export interface Category {
 	id: string
+	accountId: string
 	name: string
-	description?: string
 	createdAt: string
 	updatedAt: string
 	deletedAt: string | null
+	productGroups: any[]
 }
 
 export interface CategoriesResponse {

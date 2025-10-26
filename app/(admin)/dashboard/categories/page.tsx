@@ -21,6 +21,8 @@ import {
 	deleteCategory,
 } from "@/lib/data/routes/categories/categories"
 import CategoryForm from "@/components/Category"
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog"
+import toast from "react-hot-toast"
 
 export default function CategoriesPage() {
 	const [categories, setCategories] = useState<Category[] | null>(null)
@@ -30,14 +32,30 @@ export default function CategoriesPage() {
 	const [isFormOpen, setIsFormOpen] = useState(false)
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+		null,
+	)
+	const [isDeleting, setIsDeleting] = useState(false)
+
 	const itemsPerPage = 10
 
 	const fetchCategoriesData = async () => {
 		try {
+			console.log("🔄 Fetching categories data...")
 			const categoriesData = await getCategories()
-			setCategories(categoriesData)
+			if (categoriesData) {
+				console.log("Categories data received:", categoriesData)
+				setCategories(categoriesData)
+			} else {
+				console.warn("No categories data received")
+				setCategories([])
+				toast.error("Failed to load categories")
+			}
 		} catch (error) {
-			setCategories(null)
+			console.error("Error in fetchCategoriesData:", error)
+			setCategories([])
+			toast.error("Failed to load categories")
 		} finally {
 			setLoading(false)
 		}
@@ -47,15 +65,11 @@ export default function CategoriesPage() {
 		fetchCategoriesData()
 	}, [])
 
-	// Filter categories based on search term
 	const filteredCategories =
-		categories?.filter(
-			(category) =>
-				category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				category.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+		categories?.filter((category) =>
+			category.name.toLowerCase().includes(searchTerm.toLowerCase()),
 		) || []
 
-	// Pagination calculations
 	const totalPages = Math.ceil(filteredCategories.length / itemsPerPage)
 	const startIndex = (currentPage - 1) * itemsPerPage
 	const paginatedCategories = filteredCategories.slice(
@@ -63,49 +77,105 @@ export default function CategoriesPage() {
 		startIndex + itemsPerPage,
 	)
 
-	const handleCreateCategory = async (categoryData: {
-		name: string
-		description?: string
-	}) => {
+	const handleCreateCategory = async (categoryData: { name: string }) => {
+		console.log("Starting create category with:", categoryData)
 		setIsSubmitting(true)
-		const newCategory = await createCategory(categoryData)
-		if (newCategory) {
-			await fetchCategoriesData()
-			setIsFormOpen(false)
+		try {
+			const newCategory = await createCategory(categoryData)
+			console.log("Create category result:", newCategory)
+
+			if (newCategory) {
+				console.log("Category created successfully, refreshing data...")
+				await fetchCategoriesData()
+				setIsFormOpen(false)
+				toast.success("Category created successfully")
+			} else {
+				console.error("Failed to create category - null response")
+				throw new Error("Failed to create category - server returned null")
+			}
+		} catch (error: any) {
+			console.error("Error in handleCreateCategory:", error)
+
+			if (error.message.includes("already exists")) {
+				toast.error(error.message)
+			} else {
+				toast.error("Failed to create category")
+			}
+		} finally {
+			setIsSubmitting(false)
 		}
-		setIsSubmitting(false)
 	}
 
-	const handleUpdateCategory = async (categoryData: {
-		name: string
-		description?: string
-	}) => {
+	const handleUpdateCategory = async (categoryData: { name: string }) => {
 		if (!editingCategory) return
 
+		console.log("starting update category with:", categoryData)
 		setIsSubmitting(true)
-		const updatedCategory = await updateCategory(
-			editingCategory.id,
-			categoryData,
-		)
-		if (updatedCategory) {
-			await fetchCategoriesData()
-			setEditingCategory(null)
-			setIsFormOpen(false)
+		try {
+			const updatedCategory = await updateCategory(
+				editingCategory.id,
+				categoryData,
+			)
+			console.log("📝 Update category result:", updatedCategory)
+
+			if (updatedCategory) {
+				console.log("Category updated successfully, refreshing data...")
+				await fetchCategoriesData()
+				setEditingCategory(null)
+				setIsFormOpen(false)
+				toast.success("Category updated successfully")
+			} else {
+				console.error("Failed to update category - null response")
+				throw new Error("Failed to update category - server returned null")
+			}
+		} catch (error: any) {
+			console.error("Error in handleUpdateCategory:", error)
+
+			if (error.message.includes("already exists")) {
+				toast.error(error.message)
+			} else {
+				toast.error("Failed to update category")
+			}
+		} finally {
+			setIsSubmitting(false)
 		}
-		setIsSubmitting(false)
 	}
 
-	const handleDeleteCategory = async (categoryId: string) => {
-		if (
-			window.confirm(
-				"Are you sure you want to delete this category? This action cannot be undone.",
-			)
-		) {
-			const success = await deleteCategory(categoryId)
+	const handleDeleteClick = (category: Category) => {
+		setCategoryToDelete(category)
+		setDeleteDialogOpen(true)
+	}
+
+	const handleDeleteConfirm = async () => {
+		if (!categoryToDelete) return
+
+		console.log("Starting delete category:", categoryToDelete.id)
+		setIsDeleting(true)
+		try {
+			const success = await deleteCategory(categoryToDelete.id)
+			console.log("Delete category result:", success)
+
 			if (success) {
+				console.log("Category deleted successfully, refreshing data...")
 				await fetchCategoriesData()
+				toast.success("Category deleted successfully")
+			} else {
+				console.error("Failed to delete category - false response")
+				throw new Error("Failed to delete category - server returned false")
 			}
+		} catch (error) {
+			console.error("Error in handleDeleteConfirm:", error)
+			toast.error("Failed to delete category")
+		} finally {
+			setIsDeleting(false)
+			setDeleteDialogOpen(false)
+			setCategoryToDelete(null)
 		}
+	}
+
+	const handleDeleteCancel = () => {
+		setDeleteDialogOpen(false)
+		setCategoryToDelete(null)
 	}
 
 	const handleEdit = (category: Category) => {
@@ -130,7 +200,6 @@ export default function CategoriesPage() {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-6">
 				<div className="max-w-7xl mx-auto">
-					{/* Loading skeleton - same as before but adjusted for categories */}
 					<div className="flex items-center justify-between mb-8">
 						<div className="flex items-center gap-4">
 							<div className="w-14 h-14 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl animate-pulse shadow-sm"></div>
@@ -193,7 +262,6 @@ export default function CategoriesPage() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-6">
 			<div className="max-w-7xl mx-auto">
-				{/* Header */}
 				<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
 					<div className="flex items-center gap-4 mb-4 lg:mb-0">
 						<div className="relative">
@@ -214,6 +282,13 @@ export default function CategoriesPage() {
 									</span>{" "}
 									total categories
 								</p>
+								<p className="text-gray-600 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-gray-100 shadow-xs">
+									<BarChart3 className="h-4 w-4 text-blue-500" />
+									<span className="font-semibold text-gray-800">
+										{categories?.filter((cat) => !cat.deletedAt).length || 0}
+									</span>{" "}
+									active categories
+								</p>
 							</div>
 						</div>
 					</div>
@@ -229,7 +304,6 @@ export default function CategoriesPage() {
 					</div>
 				</div>
 
-				{/* Stats Cards */}
 				{categories && categories.length > 0 && (
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 						<div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 rounded-2xl p-6 shadow-xs hover:shadow-sm transition-shadow duration-200">
@@ -252,10 +326,13 @@ export default function CategoriesPage() {
 							<div className="flex items-center justify-between">
 								<div>
 									<p className="text-sm font-medium text-blue-700 mb-1">
-										Active Categories
+										Total Product Groups
 									</p>
 									<p className="text-3xl font-bold text-gray-800">
-										{categories.filter((cat) => !cat.deletedAt).length}
+										{categories.reduce(
+											(total, cat) => total + (cat.productGroups?.length || 0),
+											0,
+										)}
 									</p>
 								</div>
 								<div className="bg-white p-3 rounded-xl shadow-xs">
@@ -283,7 +360,6 @@ export default function CategoriesPage() {
 					</div>
 				)}
 
-				{/* Search and Info Card */}
 				<div className="bg-gradient-to-r from-purple-50/80 to-indigo-50/80 backdrop-blur-sm border border-purple-200/60 rounded-2xl p-6 mb-8 shadow-xs">
 					<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 						<div className="flex items-center gap-4">
@@ -299,12 +375,18 @@ export default function CategoriesPage() {
 									<span className="font-semibold text-purple-600">
 										{categories?.length || 0}
 									</span>{" "}
-									categories in your system
+									categories containing{" "}
+									<span className="font-semibold text-purple-600">
+										{categories?.reduce(
+											(total, cat) => total + (cat.productGroups?.length || 0),
+											0,
+										) || 0}
+									</span>{" "}
+									product groups
 								</p>
 							</div>
 						</div>
 
-						{/* Search Bar */}
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 							<input
@@ -321,7 +403,6 @@ export default function CategoriesPage() {
 					</div>
 				</div>
 
-				{/* Categories Table */}
 				<div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xs border border-gray-100/80 overflow-hidden hover:shadow-sm transition-shadow duration-200">
 					{categories === null ? (
 						<div className="text-center py-20">
@@ -368,7 +449,6 @@ export default function CategoriesPage() {
 						</div>
 					) : (
 						<div className="p-6">
-							{/* Table Header with Results Count */}
 							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
 								<div>
 									<h3 className="text-lg font-semibold text-gray-800">
@@ -383,7 +463,6 @@ export default function CategoriesPage() {
 								</div>
 							</div>
 
-							{/* Categories Table */}
 							<div className="overflow-x-auto">
 								<table className="w-full">
 									<thead>
@@ -392,13 +471,16 @@ export default function CategoriesPage() {
 												Name
 											</th>
 											<th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
-												Description
+												Product Groups
 											</th>
 											<th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
 												Created
 											</th>
 											<th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
 												Updated
+											</th>
+											<th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
+												Status
 											</th>
 											<th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
 												Actions
@@ -415,10 +497,13 @@ export default function CategoriesPage() {
 													<div className="text-sm font-semibold text-gray-900">
 														{category.name}
 													</div>
+													<div className="text-xs text-gray-500 mt-1">
+														ID: {category.id.slice(0, 8)}...
+													</div>
 												</td>
 												<td className="py-4 px-4">
-													<div className="text-sm text-gray-600 max-w-md">
-														{category.description || "No description"}
+													<div className="text-sm text-gray-600">
+														{category.productGroups?.length || 0} groups
 													</div>
 												</td>
 												<td className="py-4 px-4">
@@ -432,18 +517,31 @@ export default function CategoriesPage() {
 													</div>
 												</td>
 												<td className="py-4 px-4">
+													<span
+														className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+															category.deletedAt
+																? "bg-red-100 text-red-800"
+																: "bg-green-100 text-green-800"
+														}`}
+													>
+														{category.deletedAt ? "Inactive" : "Active"}
+													</span>
+												</td>
+												<td className="py-4 px-4">
 													<div className="flex items-center gap-2">
 														<button
 															onClick={() => handleEdit(category)}
 															className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
 															title="Edit category"
+															disabled={category.deletedAt !== null}
 														>
 															<Edit3 className="h-4 w-4" />
 														</button>
 														<button
-															onClick={() => handleDeleteCategory(category.id)}
+															onClick={() => handleDeleteClick(category)}
 															className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
 															title="Delete category"
+															disabled={category.deletedAt !== null}
 														>
 															<Trash2 className="h-4 w-4" />
 														</button>
@@ -455,7 +553,6 @@ export default function CategoriesPage() {
 								</table>
 							</div>
 
-							{/* Pagination */}
 							{totalPages > 1 && (
 								<div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-6">
 									<div className="text-sm text-gray-600">
@@ -489,13 +586,22 @@ export default function CategoriesPage() {
 					)}
 				</div>
 
-				{/* Category Form Modal */}
 				<CategoryForm
 					category={editingCategory}
 					isOpen={isFormOpen}
 					onClose={handleCloseForm}
 					onSave={editingCategory ? handleUpdateCategory : handleCreateCategory}
 					isSubmitting={isSubmitting}
+					existingCategories={categories || []}
+				/>
+
+				<DeleteConfirmationDialog
+					isOpen={deleteDialogOpen}
+					onClose={handleDeleteCancel}
+					onConfirm={handleDeleteConfirm}
+					title="Delete Category"
+					description={`Are you sure you want to delete the category "${categoryToDelete?.name}"? This action cannot be undone.`}
+					isLoading={isDeleting}
 				/>
 			</div>
 		</div>
