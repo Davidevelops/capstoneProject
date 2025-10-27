@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { ProductGroup, CreateVariantInput, VariantSetting } from "@/lib/types";
+import { ProductGroup, CreateVariantInput, VariantSetting } from "@/lib/types"
 import {
 	Archive,
 	NotebookPen,
@@ -20,18 +20,18 @@ import {
 	ChevronsLeft,
 	ChevronsRight,
 	Search,
-} from "lucide-react";
-import Link from "next/link";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+} from "lucide-react"
+import Link from "next/link"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -42,117 +42,118 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { apiEndpoints } from "@/lib/apiEndpoints";
+} from "@/components/ui/alert-dialog"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import toast from "react-hot-toast"
+import { apiEndpoints } from "@/lib/apiEndpoints"
 
 interface Props {
-	productGroups: ProductGroup[];
-	refreshProducts: () => Promise<void>;
+	productGroups: ProductGroup[]
+	refreshProducts: () => Promise<void>
 }
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 3
 
 export default function ProductList({ productGroups, refreshProducts }: Props) {
-	const [productName, setProductName] = useState<string>("");
-	const [error, setError] = useState<string>("");
-	const [loading, setIsLoading] = useState<boolean>(false);
-	const [open, setIsOpen] = useState<boolean>(false);
-	const [addVariantOpen, setAddVariantOpen] = useState<boolean>(false);
-	const [currentGroupId, setCurrentGroupId] = useState<string>("");
+	const [productName, setProductName] = useState<string>("")
+	const [error, setError] = useState<string>("")
+	const [loading, setIsLoading] = useState<boolean>(false)
+	const [open, setIsOpen] = useState<boolean>(false)
+	const [addVariantOpen, setAddVariantOpen] = useState<boolean>(false)
+	const [currentGroupId, setCurrentGroupId] = useState<string>("")
 	const [variantData, setVariantData] = useState<CreateVariantInput>({
 		name: "",
 		setting: undefined,
-	});
-	const [addMode, setAddMode] = useState<"partial" | "full">("partial");
-	const [copiedId, setCopiedId] = useState<string | null>(null);
-	const [searchTerm, setSearchTerm] = useState("");
-	const [currentPage, setCurrentPage] = useState(1);
-	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
+	})
+	const [addMode, setAddMode] = useState<"partial" | "full">("partial")
+	const [copiedId, setCopiedId] = useState<string | null>(null)
+	const [searchTerm, setSearchTerm] = useState("")
+	const [currentPage, setCurrentPage] = useState(1)
+	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
 
 	useEffect(() => {
-		setCurrentPage(1);
-	}, [searchTerm]);
+		setCurrentPage(1)
+	}, [searchTerm])
 
 	const handleCopyId = async (id: string) => {
 		try {
-			await navigator.clipboard.writeText(id);
-			setCopiedId(id);
-			toast.success("ID copied to clipboard!");
-			setTimeout(() => setCopiedId(null), 2000);
+			await navigator.clipboard.writeText(id)
+			setCopiedId(id)
+			toast.success("ID copied to clipboard!")
+			setTimeout(() => setCopiedId(null), 2000)
 		} catch (err) {
-			toast.error("Failed to copy ID");
+			toast.error("Failed to copy ID")
 		}
-	};
+	}
 
 	const handleArchiveProduct = async (id: string) => {
-		setIsLoading(true);
-		setError("");
+		setIsLoading(true)
+		setError("")
 		try {
-			await axios.delete(apiEndpoints.productGroup(id));
-			setError("");
+			await axios.delete(apiEndpoints.productGroup(id))
+			setError("")
 			await refreshProducts()
 
-			toast.success("Product group archived successfully!");
+			toast.success("Product group archived successfully!")
 		} catch (err) {
 			if (axios.isAxiosError(err)) {
-				setError(err.response?.data?.error || "An unknown error occurred");
+				setError(err.response?.data?.error || "An unknown error occurred")
 
 				toast.error(
-					err.response?.data?.error || "Failed to archive product group")
+					err.response?.data?.error || "Failed to archive product group",
+				)
 			} else {
-				setError("An unexpected error occurred");
-				toast.error("Failed to archive product group");
+				setError("An unexpected error occurred")
+				toast.error("Failed to archive product group")
 			}
 		} finally {
-			setIsLoading(false);
+			setIsLoading(false)
 		}
-	};
+	}
 
 	const goToPage = (page: number) => {
-		setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-	};
+		setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+	}
 
 	const handleUpdateDetails = async (groupId: string) => {
 		if (!productName.trim()) {
-			setError("Please provide a name.");
-			return;
+			setError("Please provide a name.")
+			return
 		}
 
-		setIsLoading(true);
-		setError("");
+		setIsLoading(true)
+		setError("")
 
 		try {
 			await axios.patch(apiEndpoints.productGroup(groupId), {
 				name: productName,
-			});
+			})
 
-			setError("");
-			setIsOpen(false);
-			setProductName("");
-			await refreshProducts();
-			toast.success("Product group updated successfully!");
+			setError("")
+			setIsOpen(false)
+			setProductName("")
+			await refreshProducts()
+			toast.success("Product group updated successfully!")
 		} catch (err) {
 			if (axios.isAxiosError(err)) {
-				setError(err.response?.data?.error || "An unknown error occurred");
+				setError(err.response?.data?.error || "An unknown error occurred")
 				toast.error(
-					err.response?.data?.error || "Failed to update product group"
-				);
+					err.response?.data?.error || "Failed to update product group",
+				)
 			} else {
-				setError("An unexpected error occurred");
-				toast.error("Failed to update product group");
+				setError("An unexpected error occurred")
+				toast.error("Failed to update product group")
 			}
 		} finally {
-			setIsLoading(false);
+			setIsLoading(false)
 		}
-	};
+	}
 
 	const handleAddVariant = async (groupId: string) => {
 		if (!variantData.name.trim()) {
-			setError("Variant name is required");
-			return;
+			setError("Variant name is required")
+			return
 		}
 
 		// Validation for full mode
@@ -162,7 +163,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				serviceLevel,
 				fillRate,
 				safetyStockCalculationMethod,
-			} = variantData.setting || {};
+			} = variantData.setting || {}
 
 			if (
 				!classification ||
@@ -172,8 +173,8 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				fillRate === null ||
 				!safetyStockCalculationMethod
 			) {
-				setError("All fields are required in Full mode");
-				return;
+				setError("All fields are required in Full mode")
+				return
 			}
 
 			if (
@@ -182,18 +183,18 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				fillRate < 0 ||
 				fillRate > 100
 			) {
-				setError("Service Level and Fill Rate must be between 0 and 100");
-				return;
+				setError("Service Level and Fill Rate must be between 0 and 100")
+				return
 			}
 		}
 
-		setIsLoading(true);
-		setError("");
+		setIsLoading(true)
+		setError("")
 
 		try {
 			const requestData: any = {
 				name: variantData.name.trim(),
-			};
+			}
 
 			if (addMode === "full" && variantData.setting) {
 				requestData.setting = {
@@ -202,41 +203,41 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 					fillRate: Number(variantData.setting.fillRate),
 					safetyStockCalculationMethod:
 						variantData.setting.safetyStockCalculationMethod?.trim(),
-				};
+				}
 			}
 
-			const variantApiUrl = apiEndpoints.product(groupId, undefined);
+			const variantApiUrl = apiEndpoints.product(groupId, undefined)
 
 			await axios.post(variantApiUrl, requestData, {
 				headers: {
 					"Content-Type": "application/json",
 				},
-			});
+			})
 
-			setError("");
-			setAddVariantOpen(false);
-			resetVariantForm();
-			await refreshProducts();
-			toast.success("Variant added successfully!");
+			setError("")
+			setAddVariantOpen(false)
+			resetVariantForm()
+			await refreshProducts()
+			toast.success("Variant added successfully!")
 		} catch (error: any) {
-			let errorMessage = "An error occurred while trying to add variant";
+			let errorMessage = "An error occurred while trying to add variant"
 
 			if (error.response?.data?.message) {
-				errorMessage = error.response.data.message;
+				errorMessage = error.response.data.message
 			} else if (error.response?.status === 400) {
 				errorMessage =
-					"Invalid data format. Please check all fields and try again.";
+					"Invalid data format. Please check all fields and try again."
 			} else if (error.response?.status === 404) {
 				errorMessage =
-					"API endpoint not found. Please check the URL configuration.";
+					"API endpoint not found. Please check the URL configuration."
 			}
 
-			setError(errorMessage);
-			toast.error(errorMessage);
+			setError(errorMessage)
+			toast.error(errorMessage)
 		} finally {
-			setIsLoading(false);
+			setIsLoading(false)
 		}
-	};
+	}
 
 	const resetVariantForm = () => {
 		setVariantData({
@@ -247,27 +248,27 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				fillRate: 90,
 				safetyStockCalculationMethod: "dynamic",
 			},
-		});
-		setAddMode("partial");
-		setError("");
-	};
+		})
+		setAddMode("partial")
+		setError("")
+	}
 
 	const openAddVariantDialog = (groupId: string) => {
-		setCurrentGroupId(groupId);
-		setAddVariantOpen(true);
-		resetVariantForm();
-	};
+		setCurrentGroupId(groupId)
+		setAddVariantOpen(true)
+		resetVariantForm()
+	}
 
 	const handleVariantFieldChange = (field: string, value: any) => {
 		setVariantData((prev) => ({
 			...prev,
 			[field]: value,
-		}));
-	};
+		}))
+	}
 
 	const handleSettingFieldChange = (
 		field: keyof VariantSetting,
-		value: any
+		value: any,
 	) => {
 		setVariantData((prev) => ({
 			...prev,
@@ -278,11 +279,11 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 						? Number(value)
 						: value,
 			} as VariantSetting,
-		}));
-	};
+		}))
+	}
 
 	const isFormValid = () => {
-		if (!variantData.name.trim()) return false;
+		if (!variantData.name.trim()) return false
 
 		if (addMode === "full") {
 			const {
@@ -290,7 +291,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				serviceLevel,
 				fillRate,
 				safetyStockCalculationMethod,
-			} = variantData.setting || {};
+			} = variantData.setting || {}
 			return !!(
 				classification?.trim() &&
 				serviceLevel !== undefined &&
@@ -298,29 +299,25 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				fillRate !== undefined &&
 				fillRate !== null &&
 				safetyStockCalculationMethod?.trim()
-			);
+			)
 		}
 
-		return true;
-	};
+		return true
+	}
 
 	const filteredProductGroups = productGroups.filter((group) =>
-		group.name.toLowerCase().includes(searchTerm.toLowerCase())
-	);
+		group.name.toLowerCase().includes(searchTerm.toLowerCase()),
+	)
 
-	const totalItems = filteredProductGroups.length;
-	const totalPages = Math.ceil(totalItems / itemsPerPage);
-	const startIndex = (currentPage - 1) * itemsPerPage;
-	const endIndex = startIndex + itemsPerPage;
-	const currentProductGroups = filteredProductGroups.slice(
-		startIndex,
-		endIndex
-	);
-	const goToFirstPage = () => goToPage(1);
-	const goToLastPage = () => goToPage(totalPages);
-	const goToNextPage = () => goToPage(currentPage + 1);
-	const goToPrevPage = () => goToPage(currentPage - 1);
-
+	const totalItems = filteredProductGroups.length
+	const totalPages = Math.ceil(totalItems / itemsPerPage)
+	const startIndex = (currentPage - 1) * itemsPerPage
+	const endIndex = startIndex + itemsPerPage
+	const currentProductGroups = filteredProductGroups.slice(startIndex, endIndex)
+	const goToFirstPage = () => goToPage(1)
+	const goToLastPage = () => goToPage(totalPages)
+	const goToNextPage = () => goToPage(currentPage + 1)
+	const goToPrevPage = () => goToPage(currentPage - 1)
 
 	if (!productGroups || productGroups.length === 0) {
 		return (
@@ -333,7 +330,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 					Start by adding your first product group
 				</p>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -354,8 +351,8 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 			</div>
 
 			{currentProductGroups.map((group) => {
-				const products = group.products || [];
-				const productCount = products.length;
+				const products = group.products || []
+				const productCount = products.length
 
 				return (
 					<div
@@ -424,10 +421,11 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 													variant={
 														addMode === "partial" ? "default" : "outline"
 													}
-													className={`flex-1 ${addMode === "partial"
-														? "bg-purple-500 hover:bg-purple-600"
-														: "border-purple-200"
-														}`}
+													className={`flex-1 ${
+														addMode === "partial"
+															? "bg-purple-500 hover:bg-purple-600"
+															: "border-purple-200"
+													}`}
 													onClick={() => setAddMode("partial")}
 												>
 													Partial
@@ -435,10 +433,11 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 												<Button
 													type="button"
 													variant={addMode === "full" ? "default" : "outline"}
-													className={`flex-1 ${addMode === "full"
-														? "bg-purple-500 hover:bg-purple-600"
-														: "border-purple-200"
-														}`}
+													className={`flex-1 ${
+														addMode === "full"
+															? "bg-purple-500 hover:bg-purple-600"
+															: "border-purple-200"
+													}`}
 													onClick={() => setAddMode("full")}
 												>
 													Full
@@ -472,7 +471,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 															onChange={(e) =>
 																handleSettingFieldChange(
 																	"classification",
-																	e.target.value
+																	e.target.value,
 																)
 															}
 															className="mt-1 border-purple-200 focus:border-purple-500"
@@ -492,7 +491,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 															onChange={(e) =>
 																handleSettingFieldChange(
 																	"serviceLevel",
-																	e.target.value
+																	e.target.value,
 																)
 															}
 															className="mt-1 border-purple-200 focus:border-purple-500"
@@ -512,7 +511,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 															onChange={(e) =>
 																handleSettingFieldChange(
 																	"fillRate",
-																	e.target.value
+																	e.target.value,
 																)
 															}
 															className="mt-1 border-purple-200 focus:border-purple-500"
@@ -532,7 +531,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 															onChange={(e) =>
 																handleSettingFieldChange(
 																	"safetyStockCalculationMethod",
-																	e.target.value
+																	e.target.value,
 																)
 															}
 															className="mt-1 border-purple-200 focus:border-purple-500"
@@ -683,9 +682,9 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 												</div>
 												<button
 													onClick={(e) => {
-														e.preventDefault();
-														e.stopPropagation();
-														handleCopyId(product.id);
+														e.preventDefault()
+														e.stopPropagation()
+														handleCopyId(product.id)
 													}}
 													className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors duration-200 group/copy"
 												>
@@ -725,7 +724,7 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 							)}
 						</div>
 					</div>
-				);
+				)
 			})}
 
 			{filteredProductGroups.length === 0 && (
@@ -774,29 +773,30 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 
 							<div className="flex items-center gap-1">
 								{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-									let pageNum;
+									let pageNum
 									if (totalPages <= 5) {
-										pageNum = i + 1;
+										pageNum = i + 1
 									} else if (currentPage <= 3) {
-										pageNum = i + 1;
+										pageNum = i + 1
 									} else if (currentPage >= totalPages - 2) {
-										pageNum = totalPages - 4 + i;
+										pageNum = totalPages - 4 + i
 									} else {
-										pageNum = currentPage - 2 + i;
+										pageNum = currentPage - 2 + i
 									}
 
 									return (
 										<button
 											key={pageNum}
 											onClick={() => goToPage(pageNum)}
-											className={`min-w-[40px] h-10 rounded-lg border transition-all duration-200 font-medium ${currentPage === pageNum
-												? "bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/25"
-												: "border-purple-200 text-gray-700 hover:bg-purple-50"
-												}`}
+											className={`min-w-[40px] h-10 rounded-lg border transition-all duration-200 font-medium ${
+												currentPage === pageNum
+													? "bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/25"
+													: "border-purple-200 text-gray-700 hover:bg-purple-50"
+											}`}
 										>
 											{pageNum}
 										</button>
-									);
+									)
 								})}
 							</div>
 
@@ -822,8 +822,8 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 							<select
 								value={itemsPerPage}
 								onChange={(e) => {
-									setItemsPerPage(Number(e.target.value));
-									setCurrentPage(1);
+									setItemsPerPage(Number(e.target.value))
+									setCurrentPage(1)
 								}}
 								className="border border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
 							>
@@ -838,6 +838,5 @@ export default function ProductList({ productGroups, refreshProducts }: Props) {
 				</div>
 			)}
 		</div>
-	);
+	)
 }
-
