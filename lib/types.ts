@@ -1,3 +1,4 @@
+
 export interface VariantSetting {
 	classification: string
 	serviceLevel: number
@@ -131,7 +132,7 @@ export interface DeliverySupplier {
 export interface Delivery {
 	id: string
 	accountId: string
-	status: string
+	status: "pending" | "completed" | "cancelled"
 	requestedAt: string
 	scheduledArrivalDate: string
 	completedAt: string | null
@@ -154,12 +155,12 @@ export interface CreateDeliveryItem {
 
 export interface CreateDeliveryData {
 	items: CreateDeliveryItem[]
-	status: string
+	status: "pending" | "completed" | "cancelled"
 	supplierId: string
 }
 
 export interface UpdateDeliveryStatusData {
-	status: string
+	status: "pending" | "completed" | "cancelled"
 	cancelledAt?: string
 }
 
@@ -188,6 +189,12 @@ export type SaleStatus = "completed" | "pending" | "cancelled"
 
 export const isSaleStatus = (status: string): status is SaleStatus => {
 	return ["completed", "pending", "cancelled"].includes(status)
+}
+
+export type DeliveryStatus = "pending" | "completed" | "cancelled"
+
+export const isDeliveryStatus = (status: string): status is DeliveryStatus => {
+	return ["pending", "completed", "cancelled"].includes(status)
 }
 
 export interface Category {

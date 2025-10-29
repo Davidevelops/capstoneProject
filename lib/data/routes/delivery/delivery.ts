@@ -1,3 +1,4 @@
+
 import { apiEndpoints } from "@/lib/apiEndpoints";
 import {
   Delivery,
@@ -5,13 +6,16 @@ import {
   CreateDeliveryData,
   UpdateDeliveryStatusData,
   UpdateDeliveryScheduleData,
+  DeliveryStatus,
 } from "@/lib/types";
 import axios from "axios";
 
-export const getAllDeliveries = async (): Promise<Delivery[] | null> => {
+export const getAllDeliveries = async (status?: DeliveryStatus): Promise<Delivery[] | null> => {
   try {
+    const params = status ? { status } : {};
     const response = await axios.get<DeliveriesResponse>(
       apiEndpoints.delivery(),
+      { params }
     );
     return response.data.data;
   } catch (error) {

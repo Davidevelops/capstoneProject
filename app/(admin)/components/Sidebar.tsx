@@ -12,7 +12,7 @@ import {
 	Users,
 	UserRoundCog,
 	ShoppingCart,
-	Folder, // Added categories icon
+	Folder, 
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -25,7 +25,7 @@ export default function Sidebar() {
 	const Links = [
 		{ href: "/dashboard", label: "Dashboard", icon: ChartColumn },
 		{ href: "/dashboard/products", label: "Products", icon: Blocks },
-		{ href: "/dashboard/categories", label: "Categories", icon: Folder }, // Added Categories
+		{ href: "/dashboard/categories", label: "Categories", icon: Folder }, 
 		{ href: "/dashboard/sales", label: "Sales", icon: ShoppingCart },
 		{ href: "/dashboard/suppliers", label: "Suppliers", icon: UserRoundCog },
 		{ href: "/dashboard/deliveries", label: "Deliveries", icon: Truck },
@@ -44,7 +44,7 @@ export default function Sidebar() {
       shadow-xl
     `}
 		>
-			{/* Header */}
+		
 			<div className="flex items-center justify-between p-6 border-b border-purple-100/30">
 				<div
 					className={`flex items-center gap-3 transition-all duration-300 ${
