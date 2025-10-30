@@ -29,6 +29,8 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Filter,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -50,7 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   addSale,
   updateSale,
@@ -87,14 +89,49 @@ export default function SalesTable({
     status: "pending",
   });
 
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  const totalItems = sales.length;
+  // Filter sales based on status and date range
+  const filteredSales = sales.filter(sale => {
+    // Status filter
+    const statusMatch = statusFilter === "all" || sale.status.toLowerCase() === statusFilter.toLowerCase();
+    
+    // Date range filter
+    const saleDate = new Date(sale.date);
+    const startDate = dateRange.startDate ? new Date(dateRange.startDate) : null;
+    const endDate = dateRange.endDate ? new Date(dateRange.endDate) : null;
+    
+    let dateMatch = true;
+    if (startDate) {
+      dateMatch = dateMatch && saleDate >= startDate;
+    }
+    if (endDate) {
+      // Set end date to end of day for inclusive range
+      const endOfDay = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      dateMatch = dateMatch && saleDate <= endOfDay;
+    }
+    
+    return statusMatch && dateMatch;
+  });
+
+  const totalItems = filteredSales.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const currentSales = sales.slice(startIndex, endIndex);
+  const currentSales = filteredSales.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, dateRange.startDate, dateRange.endDate]);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -116,6 +153,31 @@ export default function SalesTable({
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
+
+  // Handle status filter change
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+  };
+
+  // Handle date range changes
+  const handleDateRangeChange = (field: string, value: string) => {
+    setDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setStatusFilter("all");
+    setDateRange({
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = statusFilter !== "all" || dateRange.startDate || dateRange.endDate;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -208,15 +270,15 @@ export default function SalesTable({
         status: formData.status,
       });
 
-      onRefetch(); // Trigger refetch in parent component
+      onRefetch();
       setIsAddSaleOpen(false);
       setFormData({
         date: new Date().toISOString().split("T")[0],
         quantity: 1,
-        status: "completed",
+        status: "pending",
       });
     } catch (error: any) {
-      console.error("❌ Error adding sale:", error);
+      console.error("Error adding sale:", error);
       console.error("Error response:", error.response?.data);
       console.error("Error status:", error.response?.status);
       const errorMessage = error.response?.data?.message || error.message;
@@ -245,10 +307,10 @@ export default function SalesTable({
         status: formData.status,
       });
 
-      onRefetch(); // Trigger refetch in parent component
+      onRefetch(); 
       setIsUpdateSaleOpen(false);
     } catch (error: any) {
-      console.error("❌ Error updating sale:", error);
+      console.error("Error updating sale:", error);
       console.error("Error response:", error.response?.data);
       console.error("Error status:", error.response?.status);
       const errorMessage = error.response?.data?.message || error.message;
@@ -265,17 +327,17 @@ export default function SalesTable({
 
     setIsLoading(true);
     try {
-      console.log("🚀 DELETE SALE - ID Debug:");
+      console.log("DELETE SALE - ID Debug:");
       console.log("Group ID:", groupId);
       console.log("Product ID:", productId);
       console.log("Sale ID:", selectedSale.id);
 
       await deleteSale(groupId, productId, selectedSale.id);
 
-      onRefetch(); // Trigger refetch in parent component
+      onRefetch(); 
       setIsDeleteSaleOpen(false);
     } catch (error: any) {
-      console.error("❌ Error deleting sale:", error);
+      console.error("Error deleting sale:", error);
       console.error("Error response:", error.response?.data);
       console.error("Error status:", error.response?.status);
       const errorMessage = error.response?.data?.message || error.message;
@@ -301,9 +363,11 @@ export default function SalesTable({
   const pendingSales = sales.filter(
     (sale) => sale.status.toLowerCase() === "pending"
   ).length;
+  const cancelledSales = sales.filter(
+    (sale) => sale.status.toLowerCase() === "cancelled"
+  ).length;
   const totalRevenue = sales.reduce((sum, sale) => sum + sale.quantity * 1, 0);
 
-  // Generate page numbers for pagination
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
@@ -417,15 +481,21 @@ export default function SalesTable({
                       onValueChange={(value) =>
                         handleFormChange("status", value)
                       }
-                      defaultValue="completed"
+                      defaultValue="pending"
                     >
                       <SelectTrigger className="bg-white/80 border-gray-200 rounded-xl focus:border-purple-300 focus:ring-purple-200">
                         <SelectValue
                           placeholder="Select status"
-                          defaultValue={"completed"}
+                          defaultValue={"pending"}
                         />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-sm border border-purple-100/50 rounded-xl">
+                        <SelectItem
+                          value="pending"
+                          className="focus:bg-purple-50 focus:text-purple-700"
+                        >
+                          Pending
+                        </SelectItem>
                         <SelectItem
                           value="completed"
                           className="focus:bg-purple-50 focus:text-purple-700"
@@ -474,7 +544,8 @@ export default function SalesTable({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        {/* Updated Statistics Cards - Added Pending Sales Card */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-xs border border-purple-100/80 hover:shadow-md transition-all duration-300 group">
             <div className="flex items-center gap-3">
               <div className="bg-purple-50 p-2.5 rounded-xl">
@@ -540,6 +611,29 @@ export default function SalesTable({
             </div>
           </div>
 
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-xs border border-yellow-100/80 hover:shadow-md transition-all duration-300 group">
+            <div className="flex items-center gap-3">
+              <div className="bg-yellow-50 p-2.5 rounded-xl">
+                <Clock className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {pendingSales}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  Pending
+                </div>
+                <div className="text-xs text-yellow-500 mt-1">
+                  Awaiting fulfillment
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-200">
+              <Clock className="h-3 w-3" />
+              In progress
+            </div>
+          </div>
+
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-xs border border-orange-100/80 hover:shadow-md transition-all duration-300 group">
             <div className="flex items-center gap-3">
               <div className="bg-orange-50 p-2.5 rounded-xl">
@@ -579,14 +673,118 @@ export default function SalesTable({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {/* Status Filter */}
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-500" />
+                  <Select
+                    value={statusFilter}
+                    onValueChange={handleStatusFilterChange}
+                  >
+                    <SelectTrigger className="w-32 bg-white/80 border-gray-200 rounded-xl focus:border-purple-300 focus:ring-purple-200">
+                      <SelectValue placeholder="Filter status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white/95 backdrop-blur-sm border border-purple-100/50 rounded-xl">
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200">
                   <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                   <span className="text-sm font-medium">
-                    {sales.length} transactions
+                    {filteredSales.length} transactions
                   </span>
                 </div>
               </div>
             </div>
+
+            {/* Date Range Filter */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-date" className="text-sm font-medium text-gray-700">
+                    Start Date
+                  </Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={dateRange.startDate}
+                    onChange={(e) => handleDateRangeChange("startDate", e.target.value)}
+                    className="bg-white/80 border-gray-200 rounded-xl focus:border-purple-300 focus:ring-purple-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-date" className="text-sm font-medium text-gray-700">
+                    End Date
+                  </Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={dateRange.endDate}
+                    onChange={(e) => handleDateRangeChange("endDate", e.target.value)}
+                    className="bg-white/80 border-gray-200 rounded-xl focus:border-purple-300 focus:ring-purple-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 opacity-0">
+                    Actions
+                  </Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={clearAllFilters}
+                      disabled={!hasActiveFilters}
+                      className="flex items-center gap-2 bg-white/80 border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <X className="h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {statusFilter !== "all" && (
+                  <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-lg text-sm">
+                    Status: {statusFilter}
+                    <button
+                      onClick={() => setStatusFilter("all")}
+                      className="hover:text-purple-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {dateRange.startDate && (
+                  <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-sm">
+                    From: {formatDate(dateRange.startDate)}
+                    <button
+                      onClick={() => handleDateRangeChange("startDate", "")}
+                      className="hover:text-blue-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {dateRange.endDate && (
+                  <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-lg text-sm">
+                    To: {formatDate(dateRange.endDate)}
+                    <button
+                      onClick={() => handleDateRangeChange("endDate", "")}
+                      className="hover:text-green-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="p-5">
@@ -639,11 +837,24 @@ export default function SalesTable({
                         <div className="flex flex-col items-center justify-center text-gray-400">
                           <ShoppingCart className="h-12 w-12 mb-3 opacity-50" />
                           <p className="text-lg font-semibold text-gray-600">
-                            No sales records found
+                            {hasActiveFilters 
+                              ? "No sales match your filters" 
+                              : "No sales records found"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            Sales data will appear here once transactions occur
+                            {hasActiveFilters 
+                              ? "Try adjusting your filters to see more results" 
+                              : "Sales data will appear here once transactions occur"}
                           </p>
+                          {hasActiveFilters && (
+                            <Button
+                              variant="outline"
+                              onClick={clearAllFilters}
+                              className="mt-3 bg-white/80 border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl"
+                            >
+                              Clear All Filters
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -742,13 +953,14 @@ export default function SalesTable({
           </div>
 
           {/* Pagination Controls */}
-          {sales.length > 0 && (
+          {filteredSales.length > 0 && (
             <div className="px-5 pb-5 border-t border-gray-100">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <span>
                     Showing {startIndex + 1}-{endIndex} of {totalItems}{" "}
                     transactions
+                    {hasActiveFilters && " (filtered)"}
                   </span>
                   <div className="flex items-center gap-2">
                     <span>Rows per page:</span>
@@ -811,6 +1023,7 @@ export default function SalesTable({
           )}
         </div>
 
+        {/* Rest of the dialogs remain the same */}
         <Dialog open={isViewSaleOpen} onOpenChange={setIsViewSaleOpen}>
           <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-sm border border-purple-100/50 rounded-2xl shadow-xl">
             <DialogHeader>

@@ -225,7 +225,7 @@ export default function SupplierDetailPage() {
   const handleEditProduct = async () => {
     if (!supplier || !editingProduct) return;
 
-    // Validation
+  
     if (editingProduct.minOrderable <= 0 || editingProduct.maxOrderable <= 0) {
       toast.error(
         "Minimum and maximum order quantities must be greater than 0"
@@ -1023,8 +1023,8 @@ export default function SupplierDetailPage() {
                         </div>
                       </div>
                       <p className="text-sm text-gray-600 mb-3">
-                        ID: {product.id.slice(0, 8)}...
-                      </p>
+  ID: {product.id ? product.id.slice(0, 8) : "N/A"}...
+</p>
                       <div className="flex justify-between text-sm">
                         <div className="text-center">
                           <span className="text-gray-500 block">Min Order</span>
