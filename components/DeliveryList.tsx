@@ -13,7 +13,6 @@ import {
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
-	Search,
 	Package,
 	Calendar,
 	User,
@@ -41,23 +40,14 @@ export default function DeliveryList({
 		null
 	);
 	const [showMenu, setShowMenu] = useState<string | null>(null);
-	const [searchTerm, setSearchTerm] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
 
-	useEffect(() => {
-		setCurrentPage(1);
-	}, [searchTerm]);
-
-	const filteredDeliveries = deliveries.filter((delivery) =>
-		delivery.supplier.name.toLowerCase().includes(searchTerm.toLowerCase())
-	);
-
-	const totalItems = filteredDeliveries.length;
+	const totalItems = deliveries.length;
 	const totalPages = Math.ceil(totalItems / itemsPerPage);
 	const startIndex = (currentPage - 1) * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
-	const currentDeliveries = filteredDeliveries.slice(startIndex, endIndex);
+	const currentDeliveries = deliveries.slice(startIndex, endIndex);
 
 	const goToPage = (page: number) => {
 		setCurrentPage(Math.max(1, Math.min(page, totalPages)));
@@ -150,21 +140,6 @@ export default function DeliveryList({
 							{deliveries.length}
 						</span>
 						<span>deliveries</span>
-					</div>
-				</div>
-
-				<div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xs border border-gray-100/80 mb-6">
-					<div className="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
-						<div className="flex-1 relative">
-							<Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-							<input
-								type="text"
-								placeholder="Search deliveries by supplier name..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-							/>
-						</div>
 					</div>
 				</div>
 
@@ -321,7 +296,7 @@ export default function DeliveryList({
 					})}
 				</div>
 
-				{filteredDeliveries.length === 0 && (
+				{deliveries.length === 0 && (
 					<div className="text-center py-16 bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl">
 						<div className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-2xl w-24 h-24 mx-auto mb-6">
 							<Truck className="h-12 w-12 text-gray-400 mx-auto" />
@@ -330,9 +305,7 @@ export default function DeliveryList({
 							No deliveries found
 						</h3>
 						<p className="text-gray-500 text-lg max-w-md mx-auto">
-							{searchTerm
-								? "Try adjusting your search terms or try a different supplier name"
-								: "Get started by creating your first delivery order"}
+							Get started by creating your first delivery order
 						</p>
 					</div>
 				)}

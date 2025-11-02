@@ -14,15 +14,32 @@ import {
   Clock,
   Filter,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { getAllDeliveries } from "@/lib/data/routes/delivery/delivery";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function DeliveriesPage() {
   const [deliveries, setDeliveries] = useState<Delivery[] | null>(null);
   const [filteredDeliveries, setFilteredDeliveries] = useState<Delivery[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus | "all">("all");
+  const [dateRange, setDateRange] = useState({
+    startDate: "",
+    endDate: "",
+  });
+  const [dateField, setDateField] = useState<"requestedAt" | "scheduledArrivalDate">("requestedAt");
 
   const fetchDeliveries = async (status?: DeliveryStatus) => {
     try {
@@ -50,13 +67,34 @@ export default function DeliveriesPage() {
       return;
     }
 
-    if (statusFilter === "all") {
-      setFilteredDeliveries(deliveries);
-    } else {
-      const filtered = deliveries.filter(delivery => delivery.status === statusFilter);
-      setFilteredDeliveries(filtered);
+    let filtered = deliveries;
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(delivery => delivery.status === statusFilter);
     }
-  }, [statusFilter, deliveries]);
+
+    if (dateRange.startDate || dateRange.endDate) {
+      filtered = filtered.filter(delivery => {
+        const deliveryDate = new Date(delivery[dateField]);
+        const startDate = dateRange.startDate ? new Date(dateRange.startDate) : null;
+        const endDate = dateRange.endDate ? new Date(dateRange.endDate) : null;
+        
+        let dateMatch = true;
+        if (startDate) {
+          dateMatch = dateMatch && deliveryDate >= startDate;
+        }
+        if (endDate) {
+          const endOfDay = new Date(endDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          dateMatch = dateMatch && deliveryDate <= endOfDay;
+        }
+        
+        return dateMatch;
+      });
+    }
+
+    setFilteredDeliveries(filtered);
+  }, [statusFilter, dateRange, dateField, deliveries]);
 
   const getStatusStats = () => {
     if (!deliveries) return { pending: 0, completed: 0, cancelled: 0 };
@@ -80,9 +118,22 @@ export default function DeliveriesPage() {
   const statusStats = getStatusStats();
   const totalItems = getTotalItems();
 
-  const handleStatusFilterChange = (status: DeliveryStatus | "all") => {
-    setStatusFilter(status);
+  const handleDateRangeChange = (field: string, value: string) => {
+    setDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
+
+  const clearAllFilters = () => {
+    setStatusFilter("all");
+    setDateRange({
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const hasActiveFilters = statusFilter !== "all" || dateRange.startDate || dateRange.endDate;
 
   const handleRefresh = () => {
     fetchDeliveries();
@@ -209,7 +260,7 @@ export default function DeliveriesPage() {
               className={`bg-gradient-to-br from-blue-50 to-indigo-50 border rounded-2xl p-6 shadow-xs hover:shadow-sm transition-shadow duration-200 cursor-pointer ${
                 statusFilter === 'all' ? 'border-blue-300 ring-2 ring-blue-200' : 'border-blue-100'
               }`}
-              onClick={() => handleStatusFilterChange('all')}
+              onClick={() => setStatusFilter('all')}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -230,7 +281,7 @@ export default function DeliveriesPage() {
               className={`bg-gradient-to-br from-yellow-50 to-amber-50 border rounded-2xl p-6 shadow-xs hover:shadow-sm transition-shadow duration-200 cursor-pointer ${
                 statusFilter === 'pending' ? 'border-yellow-300 ring-2 ring-yellow-200' : 'border-yellow-100'
               }`}
-              onClick={() => handleStatusFilterChange('pending')}
+              onClick={() => setStatusFilter('pending')}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -251,7 +302,7 @@ export default function DeliveriesPage() {
               className={`bg-gradient-to-br from-green-50 to-emerald-50 border rounded-2xl p-6 shadow-xs hover:shadow-sm transition-shadow duration-200 cursor-pointer ${
                 statusFilter === 'completed' ? 'border-green-300 ring-2 ring-green-200' : 'border-green-100'
               }`}
-              onClick={() => handleStatusFilterChange('completed')}
+              onClick={() => setStatusFilter('completed')}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -272,7 +323,7 @@ export default function DeliveriesPage() {
               className={`bg-gradient-to-br from-red-50 to-rose-50 border rounded-2xl p-6 shadow-xs hover:shadow-sm transition-shadow duration-200 cursor-pointer ${
                 statusFilter === 'cancelled' ? 'border-red-300 ring-2 ring-red-200' : 'border-red-100'
               }`}
-              onClick={() => handleStatusFilterChange('cancelled')}
+              onClick={() => setStatusFilter('cancelled')}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -291,18 +342,17 @@ export default function DeliveriesPage() {
           </div>
         )}
 
-    
         {deliveries && deliveries.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-4 mb-8 shadow-xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+          <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 mb-8 shadow-xs">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
+              <div className="flex items-center gap-4">
                 <Filter className="h-5 w-5 text-gray-500" />
-                <span className="font-medium text-gray-700">Filter by Status:</span>
+                <span className="font-medium text-gray-700">Filters:</span>
                 <div className="flex gap-2">
                   {(['all', 'pending', 'completed', 'cancelled'] as const).map((status) => (
                     <button
                       key={status}
-                      onClick={() => handleStatusFilterChange(status)}
+                      onClick={() => setStatusFilter(status)}
                       className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                         statusFilter === status
                           ? getStatusButtonStyle(status)
@@ -321,8 +371,102 @@ export default function DeliveriesPage() {
               </div>
               <div className="text-sm text-gray-500">
                 Showing {filteredDeliveries?.length || 0} of {deliveries.length} deliveries
+                {hasActiveFilters && " (filtered)"}
               </div>
             </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date-field" className="text-sm font-medium text-gray-700">
+                  Date Field
+                </Label>
+                <Select value={dateField} onValueChange={(value: "requestedAt" | "scheduledArrivalDate") => setDateField(value)}>
+                  <SelectTrigger className="bg-white/80 border-gray-200 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="requestedAt">Requested Date</SelectItem>
+                    <SelectItem value="scheduledArrivalDate">Scheduled Arrival</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="start-date" className="text-sm font-medium text-gray-700">
+                  Start Date
+                </Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={dateRange.startDate}
+                  onChange={(e) => handleDateRangeChange("startDate", e.target.value)}
+                  className="bg-white/80 border-gray-200 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end-date" className="text-sm font-medium text-gray-700">
+                  End Date
+                </Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={dateRange.endDate}
+                  onChange={(e) => handleDateRangeChange("endDate", e.target.value)}
+                  className="bg-white/80 border-gray-200 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 opacity-0">
+                  Actions
+                </Label>
+                <Button
+                  variant="outline"
+                  onClick={clearAllFilters}
+                  disabled={!hasActiveFilters}
+                  className="flex items-center gap-2 bg-white/80 border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                >
+                  <X className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+
+            {hasActiveFilters && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {statusFilter !== "all" && (
+                  <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-lg text-sm">
+                    Status: {statusFilter}
+                    <button
+                      onClick={() => setStatusFilter("all")}
+                      className="hover:text-purple-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {dateRange.startDate && (
+                  <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-sm">
+                    From: {new Date(dateRange.startDate).toLocaleDateString()}
+                    <button
+                      onClick={() => handleDateRangeChange("startDate", "")}
+                      className="hover:text-blue-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {dateRange.endDate && (
+                  <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-lg text-sm">
+                    To: {new Date(dateRange.endDate).toLocaleDateString()}
+                    <button
+                      onClick={() => handleDateRangeChange("endDate", "")}
+                      className="hover:text-green-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -414,7 +558,6 @@ export default function DeliveriesPage() {
     </div>
   );
 }
-
 
 function getStatusButtonStyle(status: DeliveryStatus | "all") {
   switch (status) {
