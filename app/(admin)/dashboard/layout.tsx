@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import Sidebar from "../components/Sidebar"; // adjust path based on where Sidebar actually lives
+import Sidebar from "../components/Sidebar";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -19,11 +20,13 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex w-full h-full">
-      <Sidebar />
-      <div className="w-screen h-screen overflow-y-scroll overflow-x-hidden">
-        {children}
+    <ProtectedRoute>
+      <div className="flex w-full h-full">
+        <Sidebar />
+        <div className="w-screen h-screen overflow-y-scroll overflow-x-hidden">
+          {children}
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

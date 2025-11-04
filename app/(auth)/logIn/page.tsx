@@ -5,12 +5,15 @@ import axios from "axios";
 import { apiEndpoints } from "@/lib/apiEndpoints";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/lib/authContext";
+import toast from "react-hot-toast";
 
 export default function LogIn() {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
+	const { checkSession } = useAuth();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -19,8 +22,7 @@ export default function LogIn() {
 
 		try {
 			const response = await axios.post(
-				apiEndpoints.login()
-				,
+				apiEndpoints.login(),
 				{
 					username,
 					password,
@@ -31,15 +33,21 @@ export default function LogIn() {
 			);
 
 			console.log("Login success:", response.data);
+			toast.success('Login successful!');
 
-			// Example redirect after successful login
+		
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+		
+			await checkSession();
+			
+		
 			window.location.href = "/dashboard";
 		} catch (err: any) {
 			console.error("Login error:", err);
-			setError(
-				err.response?.data?.error ||
-				"Invalid username or password. Please try again.",
-			);
+			const errorMessage = err.response?.data?.error || "Invalid username or password. Please try again.";
+			setError(errorMessage);
+			toast.error(errorMessage);
 		} finally {
 			setLoading(false);
 		}

@@ -37,6 +37,9 @@ export class ApiEndpoints {
 		return `${this.backendUrl}/auth/login`
 	}
 
+	session() {
+	return `${this.backendUrl}/auth/session`;
+}
 	productGroup(groupId?: string) {
 		if (groupId) {
 			return `${this.backendUrl}/groups/${groupId}`
