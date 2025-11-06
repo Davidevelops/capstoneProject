@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Delivery } from "@/lib/types";
 import { X, AlertTriangle, Truck, Trash2 } from "lucide-react";
 import { deleteDelivery } from "@/lib/data/routes/delivery/delivery";
+import { createPortal } from "react-dom";
 
 interface DeleteDeliveryProps {
   delivery: Delivery;
@@ -17,10 +18,18 @@ export default function DeleteDelivery({
   onDeliveryDeleted,
 }: DeleteDeliveryProps) {
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   const handleDelete = async () => {
     setLoading(true);
-
     try {
       await deleteDelivery(delivery.id);
       onDeliveryDeleted();
@@ -47,9 +56,9 @@ export default function DeleteDelivery({
     });
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl max-w-md w-full animate-in fade-in-90 zoom-in-90">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <Trash2 className="h-5 w-5 text-red-600" />
@@ -144,4 +153,8 @@ export default function DeleteDelivery({
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+
+  return createPortal(modalContent, document.body);
 }

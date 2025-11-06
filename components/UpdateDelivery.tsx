@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Delivery,
   UpdateDeliveryStatusData,
@@ -8,10 +8,10 @@ import {
 } from "@/lib/types";
 import { X, Calendar, Clock, Save, RotateCcw } from "lucide-react";
 import {
-  completeDelivery,
-  cancelDelivery,
+  updateDeliveryStatus,
   updateDeliverySchedule,
 } from "@/lib/data/routes/delivery/delivery";
+import { createPortal } from "react-dom";
 
 interface UpdateDeliveryProps {
   delivery: Delivery;
@@ -25,6 +25,7 @@ export default function UpdateDelivery({
   onDeliveryUpdated,
 }: UpdateDeliveryProps) {
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"status" | "schedule">("status");
   const [formData, setFormData] = useState({
     status: delivery.status,
@@ -32,6 +33,15 @@ export default function UpdateDelivery({
     requestedAt: delivery.requestedAt.split("T")[0],
     scheduledArrivalDate: delivery.scheduledArrivalDate?.split("T")[0] || "",
   });
+
+  useEffect(() => {
+    setMounted(true);
+   
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,28 +53,53 @@ export default function UpdateDelivery({
           status: formData.status,
         };
 
+     
         if (formData.status === "cancelled") {
           updateData.cancelledAt = formData.cancelledAt;
         }
 
-        if (formData.status === "cancelled") {
-          await cancelDelivery(delivery.id, updateData);
-        } else {
-          await completeDelivery(delivery.id, updateData);
-        }
+        console.log("Updating delivery status:", {
+          deliveryId: delivery.id,
+          currentStatus: delivery.status,
+          newStatus: formData.status,
+          updateData
+        });
+
+     
+        await updateDeliveryStatus(delivery.id, updateData);
+        
       } else {
         const scheduleData: UpdateDeliveryScheduleData = {
           requestedAt: formData.requestedAt,
           scheduledArrivalDate: formData.scheduledArrivalDate,
         };
+        
+        console.log("Updating delivery schedule:", {
+          deliveryId: delivery.id,
+          scheduleData
+        });
+        
         await updateDeliverySchedule(delivery.id, scheduleData);
       }
 
+      console.log("Update successful, refreshing deliveries...");
       onDeliveryUpdated();
       onClose();
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error("Error updating delivery:", error);
-      alert("Failed to update delivery. Please try again.");
+  
+      if (error.response) {
+       
+        const errorMessage = error.response.data?.message || error.response.statusText;
+        alert(`Failed to update delivery: ${errorMessage}`);
+      } else if (error.request) {
+      
+        alert("Failed to update delivery: Network error. Please check your connection.");
+      } else {
+      
+        alert("Failed to update delivery. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -77,9 +112,9 @@ export default function UpdateDelivery({
     }));
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in fade-in-90 zoom-in-90">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <RotateCcw className="h-5 w-5 text-purple-600" />
@@ -88,13 +123,14 @@ export default function UpdateDelivery({
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={loading}
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="p-6">
-          {/* Tab Navigation */}
+         
           <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
             <button
               type="button"
@@ -136,9 +172,13 @@ export default function UpdateDelivery({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     required
                   >
+                    <option value="pending">Pending</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Current status: <span className="font-medium">{delivery.status}</span>
+                  </p>
                 </div>
 
                 {formData.status === "cancelled" && (
@@ -221,4 +261,9 @@ export default function UpdateDelivery({
       </div>
     </div>
   );
+
+
+  if (!mounted) return null;
+
+  return createPortal(modalContent, document.body);
 }

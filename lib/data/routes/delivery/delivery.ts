@@ -1,4 +1,3 @@
-
 import { apiEndpoints } from "@/lib/apiEndpoints";
 import {
   Delivery,
@@ -57,11 +56,14 @@ export const createDelivery = async (
   }
 };
 
-export const completeDelivery = async (
+
+export const updateDeliveryStatus = async (
   deliveryId: string,
   updateData: UpdateDeliveryStatusData,
 ): Promise<Delivery> => {
   try {
+    console.log("Sending status update:", { deliveryId, updateData });
+    
     const response = await axios.patch<{ data: Delivery }>(
       apiEndpoints.delivery(deliveryId),
       updateData,
@@ -72,31 +74,27 @@ export const completeDelivery = async (
       },
     );
 
+    console.log("Status update successful:", response.data);
     return response.data.data;
   } catch (error: any) {
+    console.error("Status update failed:", error);
     throw error;
   }
+};
+
+
+export const completeDelivery = async (
+  deliveryId: string,
+  updateData: UpdateDeliveryStatusData,
+): Promise<Delivery> => {
+  return updateDeliveryStatus(deliveryId, updateData);
 };
 
 export const cancelDelivery = async (
   deliveryId: string,
   cancellationData: UpdateDeliveryStatusData,
 ): Promise<Delivery> => {
-  try {
-    const response = await axios.patch<{ data: Delivery }>(
-      apiEndpoints.delivery(deliveryId),
-      cancellationData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    return response.data.data;
-  } catch (error: any) {
-    throw error;
-  }
+  return updateDeliveryStatus(deliveryId, cancellationData);
 };
 
 export const updateDeliverySchedule = async (
